@@ -1,11 +1,13 @@
-import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonButton, IonIcon } from '@ionic/react';
+import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonButton, IonIcon, IonModal, IonTextarea } from '@ionic/react';
 import { micOutline, saveOutline, documentTextOutline, handLeftOutline } from 'ionicons/icons';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import './Home.css';
 import VoiceRecorderComponent from '../components/VoiceRecorder';
 
 const Home: React.FC = () => {
   const [isRecording, setIsRecording] = useState(false);
+  const [transcription, setTranscription] = useState("");
+  const [isOpen, setIsOpen] = useState(false);
 
   const toggleRecording = () => {
     setIsRecording(!isRecording);
@@ -15,7 +17,29 @@ const Home: React.FC = () => {
   const handleRecordingComplete = (recording: any) => {
     // 録音が完了したときの処理
     console.log('録音完了:', recording);
+    const base64Sound = recording.recordDataBase64 // from plugin
+    const mimeType = recording.mimeType  // from plugin
+    // const audioRef = new Audio(`data:${mimeType};base64,${base64Sound}`)
+    // audioRef.oncanplaythrough = () => audioRef.play()
+    // audioRef.load()
+
+    //ここでfastAPIに音声ファイルを送信&文字お越し後の文字列をget
+
+    setTranscription("こんにちは");
+
   };
+
+  const confirmMemoContent = () => {
+
+    setIsOpen(true);
+  };
+
+  useEffect(() => {
+    if (transcription.trim() !== ""){
+      confirmMemoContent();
+      console.log(transcription);
+    }
+  }, [transcription]);
 
   return (
     <IonPage>
@@ -64,6 +88,19 @@ const Home: React.FC = () => {
               メモ一覧
             </IonButton>
           </div>
+
+          <IonModal isOpen={isOpen}>
+            <IonHeader>
+              <IonToolbar>
+                <IonHeader>
+                  <IonTitle>確認</IonTitle>
+                  <IonButton onClick={() => console.log("A")}>送信</IonButton>
+                </IonHeader>
+              </IonToolbar>
+            </IonHeader>
+
+            <IonTextarea placeholder={transcription}></IonTextarea>
+          </IonModal>
         </div>
       </IonContent>
     </IonPage>
