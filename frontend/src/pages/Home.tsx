@@ -1,6 +1,6 @@
-import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonButton, IonIcon, IonModal, IonTextarea } from '@ionic/react';
-import { micOutline, saveOutline, documentTextOutline, handLeftOutline } from 'ionicons/icons';
-import { useEffect, useState } from 'react';
+import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonButton, IonIcon, IonModal, IonTextarea, IonButtons, IonItem, IonInput } from '@ionic/react';
+import { micOutline, saveOutline, documentTextOutline, handLeftOutline, sendOutline } from 'ionicons/icons';
+import { useEffect, useState, useRef } from 'react';
 import './Home.css';
 import VoiceRecorderComponent from '../components/VoiceRecorder';
 
@@ -8,6 +8,8 @@ const Home: React.FC = () => {
   const [isRecording, setIsRecording] = useState(false);
   const [transcription, setTranscription] = useState("");
   const [isOpen, setIsOpen] = useState(false);
+  const modal = useRef<HTMLIonModalElement>(null);
+  const input = useRef<HTMLIonTextareaElement>(null);
 
   const toggleRecording = () => {
     setIsRecording(!isRecording);
@@ -22,21 +24,36 @@ const Home: React.FC = () => {
     // const audioRef = new Audio(`data:${mimeType};base64,${base64Sound}`)
     // audioRef.oncanplaythrough = () => audioRef.play()
     // audioRef.load()
+    // const base64Data = base64Sound.replace(/^data:.+;base64,/, '');
+    // const byteCharacters = atob(base64Data);
+    // const byteNumbers = new Array(byteCharacters.length);
+    
+    // for (let i = 0; i < byteCharacters.length; i++){
+    //   byteNumbers[i] = byteCharacters.charCodeAt(i);
+    // }
+
+    // const byteArray = new Uint8Array(byteNumbers);
+    // const blob = new Blob([byteArray], {type: "audio/wav"});
+    // setUrl(URL.createObjectURL(blob));
+    // setIsRecording(true);
 
     //ここでfastAPIに音声ファイルを送信&文字お越し後の文字列をget
 
     setTranscription("こんにちは");
+    setIsOpen(true);
 
   };
 
-  const confirmMemoContent = () => {
-
-    setIsOpen(true);
+  const SendMemoContent = () => {
+    modal.current?.dismiss();
+    setIsOpen(false);
+    if (input.current && input.current.value ){
+      setTranscription(input.current.value);
+    }
   };
 
   useEffect(() => {
     if (transcription.trim() !== ""){
-      confirmMemoContent();
       console.log(transcription);
     }
   }, [transcription]);
@@ -83,23 +100,39 @@ const Home: React.FC = () => {
               <IonIcon slot="start" icon={saveOutline} />
               保存
             </IonButton>
-            <IonButton routerLink="/notes">
+            <IonButton routerLink="/list" >
               <IonIcon slot="start" icon={documentTextOutline} />
               メモ一覧
             </IonButton>
           </div>
 
-          <IonModal isOpen={isOpen}>
+          <IonModal isOpen={isOpen} ref={modal}>
             <IonHeader>
               <IonToolbar>
-                <IonHeader>
-                  <IonTitle>確認</IonTitle>
-                  <IonButton onClick={() => console.log("A")}>送信</IonButton>
-                </IonHeader>
+                  <IonButtons slot="start">
+                    <IonButton onClick={() => {
+                      modal.current?.dismiss();
+                      setIsOpen(false);
+                    }}>Cancel</IonButton>
+                  </IonButtons> 
+                  <IonTitle class="ion-text-center">Confirm</IonTitle>
+
+                  <IonButtons slot="end">
+                    <IonButton onClick={() => SendMemoContent()}>Send</IonButton>
+                  </IonButtons> 
               </IonToolbar>
             </IonHeader>
-
-            <IonTextarea placeholder={transcription}></IonTextarea>
+            <IonContent >
+              <IonItem>
+                <IonTextarea
+                  // labelPlacement="stacked"
+                  ref={input}
+                  value={transcription}
+                  // rows={10}
+                  autoGrow={true}
+                />
+              </IonItem>
+            </IonContent>
           </IonModal>
         </div>
       </IonContent>
