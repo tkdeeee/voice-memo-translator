@@ -1,6 +1,7 @@
 import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonButton, IonIcon, IonModal, IonTextarea, IonButtons, IonItem, IonInput } from '@ionic/react';
 import { micOutline, saveOutline, documentTextOutline, handLeftOutline, sendOutline } from 'ionicons/icons';
 import { useEffect, useState, useRef } from 'react';
+import { getAuth } from 'firebase/auth';
 import './Home.css';
 import VoiceRecorderComponent from '../components/VoiceRecorder';
 
@@ -10,6 +11,7 @@ const Home: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const modal = useRef<HTMLIonModalElement>(null);
   const input = useRef<HTMLIonTextareaElement>(null);
+  const auth = getAuth();
 
   const toggleRecording = () => {
     setIsRecording(!isRecording);
@@ -18,6 +20,7 @@ const Home: React.FC = () => {
 
   const handleRecordingComplete = (recording: any) => {
     // 録音が完了したときの処理
+    console.log(auth.currentUser);
     console.log('録音完了:', recording);
     const base64Sound = recording.recordDataBase64 // from plugin
     const mimeType = recording.mimeType  // from plugin
