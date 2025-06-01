@@ -11,10 +11,11 @@ type Userdoctype = {
   uid: string,
   displayName: string,
   photoURL: string,
+  email: string,
   group: Group[]
 };
 
-async function CreateUserdoc(uid:string, photoURL:string, displayName: string) {
+async function CreateUserdoc(uid:string, photoURL:string, displayName: string, email: string) {
     const userDoc = doc(db, "users", uid);
     const docSnap = await getDoc(userDoc);
     console.log(docSnap.data());
@@ -23,6 +24,7 @@ async function CreateUserdoc(uid:string, photoURL:string, displayName: string) {
         uid: uid,
         displayName: displayName,
         photoURL: photoURL,
+        email: email,
         group: [] as Group[],
       });
     };
@@ -35,6 +37,7 @@ function isUserdoctype(data: any): data is Userdoctype{
     typeof data.uid === 'string' &&
     typeof data.displayName === 'string' &&
     typeof data.photoURL === 'string' &&
+    typeof data.email === 'string' &&
     Array.isArray(data.group)
   );
 }
