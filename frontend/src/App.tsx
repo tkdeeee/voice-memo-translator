@@ -2,6 +2,7 @@ import { Redirect, Route } from 'react-router-dom';
 import { IonApp, IonRouterOutlet, setupIonicReact } from '@ionic/react';
 import { IonReactRouter } from '@ionic/react-router';
 import { getAuth, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, onAuthStateChanged  } from 'firebase/auth';
+import { collection, doc, setDoc } from "firebase/firestore"; 
 import { auth , app, db } from './firebase/config'; 
 import { useEffect } from 'react';
 import Home from './pages/Home';
@@ -56,6 +57,9 @@ const App: React.FC = () => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user);
       setIsLoading(false); 
+      if(user){
+        const userDoc = collection(db, "users")
+      };
     });
 
     // クリーンアップ関数
