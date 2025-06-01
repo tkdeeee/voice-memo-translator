@@ -2,13 +2,16 @@ import { Redirect, Route } from 'react-router-dom';
 import { IonApp, IonRouterOutlet, setupIonicReact } from '@ionic/react';
 import { IonReactRouter } from '@ionic/react-router';
 import { getAuth, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, onAuthStateChanged  } from 'firebase/auth';
-import { collection, doc, setDoc } from "firebase/firestore"; 
+import { collection, doc, setDoc, getDoc } from "firebase/firestore";
 import { auth , app, db } from './firebase/config'; 
 import { useEffect } from 'react';
 import Home from './pages/Home';
 import List from './pages/List';
 import Login from './pages/Login';
+import Setting from './pages/Setting';
 import ProtectRouter from './ProtectRouter';
+import { CreateUserdoc } from './firebase/firestore';
+
 /* Core CSS required for Ionic components to work properly */
 import '@ionic/react/css/core.css';
 
@@ -44,6 +47,12 @@ setupIonicReact();
 // createUserWithEmailAndPassword(auth, email, password)
 //   .then(())
 
+async function GetUserdoc(uid:string){
+  const userDoc = doc(db, "users", uid);
+  const docSnap = await getDoc(userDoc);
+  return docSnap.data();
+}
+
 const App: React.FC = () => {
   const [isLogin, setIsLogin] = useState<boolean>(false);
   const [user, setUser] = useState<Object|null>(null);
@@ -51,14 +60,15 @@ const App: React.FC = () => {
   
   const provider = new GoogleAuthProvider();
   provider.addScope('https://www.googleapis.com/auth/contacts.readonly');
-  auth.languageCode = 'ja';
 
    useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
+      console.log(user);
       setUser(user);
       setIsLoading(false); 
-      if(user){
-        const userDoc = collection(db, "users")
+      if(user && user.displayName && user.photoURL){
+        console.log(user.uid);
+        CreateUserdoc(user.uid, user.photoURL, user.displayName, );
       };
     });
 
@@ -67,7 +77,7 @@ const App: React.FC = () => {
     }, []);
 
   const ProcessLogin = () => {
-    console.log(auth);
+    // console.log(auth);
     //googleaccount認証
     signInWithPopup(auth, provider)
       .then((result) =>{
@@ -76,8 +86,8 @@ const App: React.FC = () => {
 
         setUser(result.user);
         setIsLogin(true);
-        console.log(result.user);
-        console.log(typeof result.user);
+        // console.log(result.user);
+        // console.log(typeof result.user);
       }).catch  ((error) => {
         const errorCode = error.code;
         const errorMessage = error.message;
@@ -86,6 +96,8 @@ const App: React.FC = () => {
         const credential = GoogleAuthProvider.credentialFromError(error);
       });
   };
+
+
   if (isLoading) {
     return (
       <IonApp>
@@ -116,6 +128,12 @@ const App: React.FC = () => {
             </ProtectRouter>
           </Route>
 
+          <Route exact path="/setting">
+            <ProtectRouter>
+              <Setting />
+            </ProtectRouter>
+          </Route>
+
           <Route exact path="/">
             {user ? <Redirect to="/home" /> : <Redirect to="/login" />}
           </Route>
@@ -126,4 +144,4 @@ const App: React.FC = () => {
   );
 };
 
-export default App;
+export default App ;

@@ -20,7 +20,6 @@ const Home: React.FC = () => {
 
   const handleRecordingComplete = (recording: any) => {
     // 録音が完了したときの処理
-    console.log(auth.currentUser);
     console.log('録音完了:', recording);
     const base64Sound = recording.recordDataBase64 // from plugin
     const mimeType = recording.mimeType  // from plugin
