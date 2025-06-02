@@ -5,7 +5,8 @@ import { User } from 'firebase/auth';
 type Group = {
   member : string[],
   membernumber : Number,
-  name : string
+  name : string,
+  groupid : string
 };
 
 type Userdoctype = {
@@ -15,6 +16,15 @@ type Userdoctype = {
   email: string,
   group: Group[]
 };
+
+type TalkContent = {
+  uid: string,
+  lettercontent: string
+}
+
+type TalkHistory = {
+  talkhistory: TalkContent[],
+}
 
 async function CreateUserdoc(uid:string, photoURL:string, displayName: string, email: string) {
   const userDoc = doc(db, "users", uid);
@@ -52,5 +62,28 @@ async function GetUserdoc(uid:string) : Promise<Userdoctype|null>{
   return  null;
 }
 
-export { CreateUserdoc, GetUserdoc };
-export type { Group, Userdoctype };
+function isTalkHistorydoctype(data: any): data is TalkHistory{
+  return (
+    typeof data === 'object' &&
+    data !== null &&
+    Array.isArray(data.talkhistory) &&
+    data.talkhistory.every((item: any) => 
+      typeof item === 'object' &&
+      item !== null &&
+      typeof item.uid === 'string' &&
+      typeof item.lettercontent === 'string'
+    )
+  );
+}
+
+async function GetTalkdoc(groupid:string) : Promise<TalkHistory|null>{
+  const TalkHistorydoc = doc(db, "talks", groupid);
+  const docSnap = (await getDoc(TalkHistorydoc)).data();
+  if(isTalkHistorydoctype(docSnap)){
+    return docSnap as TalkHistory;
+  }
+  return null;
+}
+
+export { CreateUserdoc, GetUserdoc, GetTalkdoc };
+export type { Group, Userdoctype, TalkContent, TalkHistory };

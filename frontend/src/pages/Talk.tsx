@@ -9,7 +9,7 @@ import type { Userdoctype, Group } from '../firebase/firestore';
 import { settingsOutline } from 'ionicons/icons';
 
 
-const List: React.FC = () => {
+const Talk: React.FC = () => {
     const [grouplist, setGroupList] = useState<Group[]|null>(null);
     const [user, setUser] = useState(getAuth().currentUser);
 
@@ -39,7 +39,7 @@ const List: React.FC = () => {
                 <IonList>
                     {grouplist?
                         grouplist.map((group: Group) =>(
-                            <IonItem key={group.name} button routerLink={`/talk/${group.groupid}`}>{group.name}</IonItem>
+                            <IonItem key={group.name} button >{group.name}</IonItem>
                         ))
                     :
                         <IonItem>グループがまだありません</IonItem>
@@ -50,4 +50,4 @@ const List: React.FC = () => {
     );
 };
 
-export default List;
+export default Talk;
