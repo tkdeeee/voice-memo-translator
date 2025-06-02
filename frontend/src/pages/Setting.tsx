@@ -22,6 +22,15 @@ const Setting: React.FC = () => {
         }
     }, [user]);
 
+    async function SignOut() {
+        const auth = getAuth();
+        signOut(auth).then(() =>{
+            console.log("signout successful.");
+        }).catch((error) =>{
+            console.log("sign out failed.")
+        });
+    };
+
     return(
         <IonPage>
             <IonHeader>
@@ -34,10 +43,12 @@ const Setting: React.FC = () => {
             </IonHeader>
             <IonContent>
                 {userdoc?
-                    <div className="container">
-                        <IonImg src={userdoc.photoURL} alt="Your Icon Is Displayed here"></IonImg>
+                    <div className="settingcontainer">
+                        <IonImg class="ion-padding-top" src={userdoc.photoURL} alt="Your Icon Is Displayed here"></IonImg>
                         <IonItem>{userdoc.displayName}</IonItem>
                         <IonItem>{userdoc.email}</IonItem>
+                        <IonItem>{userdoc.uid}</IonItem>
+                        <IonButton onClick={SignOut}>Sign Out</IonButton>
                     </div>
 
                 :

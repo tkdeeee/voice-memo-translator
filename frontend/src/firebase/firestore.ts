@@ -4,7 +4,8 @@ import { User } from 'firebase/auth';
 
 type Group = {
   member : string[],
-  membernumber : Number
+  membernumber : Number,
+  name : string
 };
 
 type Userdoctype = {
@@ -16,19 +17,19 @@ type Userdoctype = {
 };
 
 async function CreateUserdoc(uid:string, photoURL:string, displayName: string, email: string) {
-    const userDoc = doc(db, "users", uid);
-    const docSnap = await getDoc(userDoc);
-    console.log(docSnap.data());
-    if(!docSnap.data()){
-      await setDoc(doc(db, "users", uid), {
-        uid: uid,
-        displayName: displayName,
-        photoURL: photoURL,
-        email: email,
-        group: [] as Group[],
-      });
-    };
+  const userDoc = doc(db, "users", uid);
+  const docSnap = await getDoc(userDoc);
+  // console.log(docSnap.data());
+  if(!docSnap.data()){
+    await setDoc(doc(db, "users", uid), {
+      uid: uid,
+      displayName: displayName,
+      photoURL: photoURL,
+      email: email,
+      group: [] as Group[],
+    });
   };
+};
 
 function isUserdoctype(data: any): data is Userdoctype{
   return (

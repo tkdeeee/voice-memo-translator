@@ -1,7 +1,7 @@
 import { Redirect, Route } from 'react-router-dom';
 import { IonApp, IonRouterOutlet, setupIonicReact } from '@ionic/react';
 import { IonReactRouter } from '@ionic/react-router';
-import { getAuth, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, onAuthStateChanged  } from 'firebase/auth';
+import { getAuth, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, User  } from 'firebase/auth';
 import { collection, doc, setDoc, getDoc } from "firebase/firestore";
 import { auth , app, db } from './firebase/config'; 
 import { useEffect } from 'react';
@@ -47,55 +47,26 @@ setupIonicReact();
 // createUserWithEmailAndPassword(auth, email, password)
 //   .then(())
 
-async function GetUserdoc(uid:string){
-  const userDoc = doc(db, "users", uid);
-  const docSnap = await getDoc(userDoc);
-  return docSnap.data();
-}
-
 const App: React.FC = () => {
-  const [isLogin, setIsLogin] = useState<boolean>(false);
-  const [user, setUser] = useState<Object|null>(null);
+  const [user, setUser] = useState<User|null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   
   const provider = new GoogleAuthProvider();
   provider.addScope('https://www.googleapis.com/auth/contacts.readonly');
 
-   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      console.log(user);
-      setUser(user);
-      setIsLoading(false); 
-      if(user && user.displayName && user.photoURL && user.email){
-        console.log(user.uid);
-        CreateUserdoc(user.uid, user.photoURL, user.displayName, user.email);
-      };
-    });
+  useEffect(() => {
+  const unsubscribe = onAuthStateChanged(auth, (user) => {
+    console.log("Auth state changed:", user);
+    setUser(user);
+    setIsLoading(false);
+    if(user && user.displayName && user.photoURL && user.email){
+      CreateUserdoc(user.uid, user.photoURL, user.displayName, user.email);
+    };
+  });
 
-    // クリーンアップ関数
-    return () => unsubscribe();
-    }, []);
-
-  const ProcessLogin = () => {
-    // console.log(auth);
-    //googleaccount認証
-    signInWithPopup(auth, provider)
-      .then((result) =>{
-        const credential = GoogleAuthProvider.credentialFromResult(result);
-        const token = credential?.accessToken;
-
-        setUser(result.user);
-        setIsLogin(true);
-        // console.log(result.user);
-        // console.log(typeof result.user);
-      }).catch  ((error) => {
-        const errorCode = error.code;
-        const errorMessage = error.message;
-
-        const email = error.customData.email;
-        const credential = GoogleAuthProvider.credentialFromError(error);
-      });
-  };
+  // クリーンアップ関数
+  return () => unsubscribe();
+  }, []);
 
 
   if (isLoading) {
@@ -113,23 +84,23 @@ const App: React.FC = () => {
       <IonReactRouter>
         <IonRouterOutlet>
           <Route exact path="/login">
-            {user ? <Redirect to="/home" /> : <Login ProcessLogin={ProcessLogin}/>}
+            {user ? <Redirect to="/home" /> : <Login/>}
           </Route>
 
           <Route exact path="/home">
-            <ProtectRouter>
+            <ProtectRouter user = {user}>
               <Home />
             </ProtectRouter>
           </Route>
 
           <Route exact path="/list">
-            <ProtectRouter>
+            <ProtectRouter user = {user}>
               <List />
             </ProtectRouter>
           </Route>
 
           <Route exact path="/setting">
-            <ProtectRouter>
+            <ProtectRouter user = {user}>
               <Setting />
             </ProtectRouter>
           </Route>
