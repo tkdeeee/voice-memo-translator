@@ -22,8 +22,9 @@ type TalkContent = {
   lettercontent: string
 }
 
-type TalkHistory = {
+type GroupTalk = {
   talkhistory: TalkContent[],
+  name: string
 }
 
 async function CreateUserdoc(uid:string, photoURL:string, displayName: string, email: string) {
@@ -62,7 +63,7 @@ async function GetUserdoc(uid:string) : Promise<Userdoctype|null>{
   return  null;
 }
 
-function isTalkHistorydoctype(data: any): data is TalkHistory{
+function isGroupTalkdoctype(data: any): data is GroupTalk{
   return (
     typeof data === 'object' &&
     data !== null &&
@@ -72,18 +73,19 @@ function isTalkHistorydoctype(data: any): data is TalkHistory{
       item !== null &&
       typeof item.uid === 'string' &&
       typeof item.lettercontent === 'string'
-    )
+    )&&
+    typeof data.name === 'string'
   );
 }
 
-async function GetTalkdoc(groupid:string) : Promise<TalkHistory|null>{
-  const TalkHistorydoc = doc(db, "talks", groupid);
-  const docSnap = (await getDoc(TalkHistorydoc)).data();
-  if(isTalkHistorydoctype(docSnap)){
-    return docSnap as TalkHistory;
+async function GetTalkdoc(groupid:string) : Promise<GroupTalk|null>{
+  const GroupTalkdoc = doc(db, "talks", groupid);
+  const docSnap = (await getDoc(GroupTalkdoc)).data();
+  if(isGroupTalkdoctype(docSnap)){
+    return docSnap as GroupTalk;
   }
   return null;
 }
 
 export { CreateUserdoc, GetUserdoc, GetTalkdoc };
-export type { Group, Userdoctype, TalkContent, TalkHistory };
+export type { Group, Userdoctype, TalkContent, GroupTalk };

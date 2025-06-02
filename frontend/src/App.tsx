@@ -10,6 +10,7 @@ import List from './pages/List';
 import Login from './pages/Login';
 import Setting from './pages/Setting';
 import ProtectRouter from './ProtectRouter';
+import Talk from './pages/Talk';
 import { CreateUserdoc } from './firebase/firestore';
 
 /* Core CSS required for Ionic components to work properly */
@@ -96,6 +97,12 @@ const App: React.FC = () => {
           <Route exact path="/list">
             <ProtectRouter user = {user}>
               <List />
+            </ProtectRouter>
+          </Route>
+
+          <Route path="/talk/:groupid">
+            <ProtectRouter user = {user}>
+              <Talk />
             </ProtectRouter>
           </Route>
 

@@ -2,51 +2,50 @@ import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonButton, IonIco
 import { micOutline, saveOutline, documentTextOutline, handLeftOutline } from 'ionicons/icons';
 import { useEffect, useState, useRef } from 'react';
 import { auth, app, db } from '../firebase/config';
-import VoiceRecorderComponent from '../components/VoiceRecorder';
-import { GetUserdoc } from '../firebase/firestore';
 import { getAuth } from 'firebase/auth';
-import type { Userdoctype, Group } from '../firebase/firestore';
+import type { GroupTalk, TalkContent } from '../firebase/firestore';
 import { settingsOutline } from 'ionicons/icons';
+import { useParams } from 'react-router';
+import { GetTalkdoc } from '../firebase/firestore';
 
 
 const Talk: React.FC = () => {
-    const [grouplist, setGroupList] = useState<Group[]|null>(null);
+    const [grouptalk, setGroupTalk] = useState<GroupTalk|null>(null);
     const [user, setUser] = useState(getAuth().currentUser);
+    const {groupid} = useParams<{ groupid: string}>();
 
     useEffect(() => {
-        if(user?.uid){
-            GetUserdoc(user.uid).then((userData) =>{
-                if(userData?.group){
-                    setGroupList(userData.group);
-                    console.log(userData.group);
-                }
-            })
-        }
-    }, [user]);
+        GetTalkdoc(groupid).then((talkData) =>{
+            if(talkData){
+                setGroupTalk(talkData);
+                
+            };
+        });
+    }, []);
 
 
     return(
-        <IonPage>
-            <IonHeader>
-                <IonToolbar>
-                    <IonTitle>トーク</IonTitle>
-                    <IonButton slot='end' routerLink='/setting'>
-                        <IonIcon icon={settingsOutline}></IonIcon>  
-                    </IonButton>
-                </IonToolbar>
-            </IonHeader>
-            <IonContent>
-                <IonList>
-                    {grouplist?
-                        grouplist.map((group: Group) =>(
-                            <IonItem key={group.name} button >{group.name}</IonItem>
-                        ))
-                    :
-                        <IonItem>グループがまだありません</IonItem>
-                    }
-                </IonList>
-            </IonContent>
-        </IonPage>
+        <>
+            {grouptalk ? (
+                <IonPage>
+                    <IonHeader>
+                        <IonToolbar>
+                            <IonTitle>{grouptalk.name}</IonTitle>
+                            <IonButton slot='end' routerLink='/setting'>
+                                <IonIcon icon={settingsOutline}></IonIcon>  
+                            </IonButton>
+                        </IonToolbar>
+                    </IonHeader>
+                    <IonContent>
+                        {grouptalk.talkhistory.map((talk, index) => {
+                           return <IonItem key={index}>{talk.lettercontent}</IonItem>
+                        })}
+                    </IonContent>
+                </IonPage>
+            ):(
+                <></>
+            )}
+        </>
     );
 };
 

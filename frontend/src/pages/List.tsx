@@ -19,9 +19,9 @@ const List: React.FC = () => {
                 if(userData?.group){
                     setGroupList(userData.group);
                     console.log(userData.group);
-                }
-            })
-        }
+                };
+            });
+        };
     }, [user]);
 
 
