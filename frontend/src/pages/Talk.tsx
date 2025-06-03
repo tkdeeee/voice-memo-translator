@@ -1,4 +1,4 @@
-import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonButton, IonIcon, IonModal, IonTextarea, IonButtons, IonItem, IonInput, IonList } from '@ionic/react';
+import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonButton, IonIcon, IonModal, IonTextarea, IonButtons, IonItem, IonInput, IonList, IonLabel, IonNote } from '@ionic/react';
 import { micOutline, saveOutline, documentTextOutline, handLeftOutline } from 'ionicons/icons';
 import { useEffect, useState, useRef } from 'react';
 import { auth, app, db } from '../firebase/config';
@@ -7,6 +7,7 @@ import type { GroupTalk, TalkContent } from '../firebase/firestore';
 import { settingsOutline } from 'ionicons/icons';
 import { useParams } from 'react-router';
 import { GetTalkdoc } from '../firebase/firestore';
+import './Talk.css';
 
 
 const Talk: React.FC = () => {
@@ -21,6 +22,8 @@ const Talk: React.FC = () => {
                 
             };
         });
+
+        
     }, []);
 
 
@@ -36,10 +39,16 @@ const Talk: React.FC = () => {
                             </IonButton>
                         </IonToolbar>
                     </IonHeader>
-                    <IonContent>
+                    <IonContent class='talkcontainer'>
                         {grouptalk.talkhistory.map((talk, index) => {
-                           return <IonItem key={index}>{talk.lettercontent}</IonItem>
-                        })}
+                           return(   
+                            <IonItem key={index}>
+                                <IonLabel>
+                                    <IonNote>{talk.uid}</IonNote>
+                                    <p>{talk.lettercontent}</p>
+                                </IonLabel>
+                            </IonItem>
+                        )})}
                     </IonContent>
                 </IonPage>
             ):(
