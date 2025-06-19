@@ -2,9 +2,7 @@ import { doc, setDoc, getDoc } from 'firebase/firestore' ;
 import { db } from './config';
 import { User } from 'firebase/auth';
 
-type Group = {
-  member : string[],
-  membernumber : Number,
+type GroupList= {
   name : string,
   groupid : string
 };
@@ -14,17 +12,33 @@ type Userdoctype = {
   displayName: string,
   photoURL: string,
   email: string,
-  group: Group[]
+  group: GroupList[]
+};
+
+type Groupconfig = {
+  member : string[],
+  memberNumber : Number,
+  name : string,
+  groupid : string
 };
 
 type TalkContent = {
-  uid: string,
+  speakeruid: string,
   lettercontent: string
 }
 
 type GroupTalk = {
   talkhistory: TalkContent[],
-  name: string
+  groupconfig: Groupconfig
+}
+
+type DisplayNameandPhotoURL = {
+  displayName: string,
+  photoURL: string
+}
+
+type UidDisplayNameDict = {
+  [uid: string]: DisplayNameandPhotoURL,
 }
 
 
@@ -51,10 +65,17 @@ function isGroupTalkdoctype(data: any): data is GroupTalk{
     data.talkhistory.every((item: any) => 
       typeof item === 'object' &&
       item !== null &&
-      typeof item.uid === 'string' &&
+      typeof item.speakeruid === 'string' &&
       typeof item.lettercontent === 'string'
     )&&
-    typeof data.name === 'string'
+    typeof data.groupconfig !== null &&
+    typeof data.groupconfig === 'object' &&
+    typeof data.groupconfig.member === 'object' &&
+    Array.isArray(data.groupconfig.member) &&
+    data.groupconfig.member.every((item: any) => typeof item === 'string') &&
+    typeof data.groupconfig.memberNumber === 'number' &&
+    typeof data.groupconfig.name === 'string' &&
+    typeof data.groupconfig.groupid === 'string'
   );
 }
 
@@ -69,7 +90,7 @@ async function CreateUserdoc(uid:string, photoURL:string, displayName: string, e
       displayName: displayName,
       photoURL: photoURL,
       email: email,
-      group: [] as Group[],
+      group: [] as GroupList[],
     });
   };
 };
@@ -96,7 +117,23 @@ async function GetTalkdoc(groupid:string) : Promise<GroupTalk|null>{
 }
 
 //firestoreのtalksのあるグループのmemberのuid一つ一つをusers内のそれぞれのユーザのdisplaynameと紐づける
-async function GetSpeakerUidDict(groupid:stiring): Promise<
+async function GetSpeakerUidDict(groupid:string): Promise<UidDisplayNameDict | null> {
+  const groupTalk = await GetTalkdoc(groupid);
+  if (!groupTalk) {
+    return null;
+  }
 
-export { CreateUserdoc, GetUserdoc, GetTalkdoc };
-export type { Group, Userdoctype, TalkContent, GroupTalk };
+  const speakerUidDict: UidDisplayNameDict = {};
+  for(const memberUid of groupTalk.groupconfig.member) {
+    const userDoc = await GetUserdoc(memberUid);
+    if (userDoc) {
+      speakerUidDict[memberUid] = { displayName: userDoc.displayName, photoURL: userDoc.photoURL }; // ユーザのdisplayNameとphotoURLを格納
+    } else {
+      speakerUidDict[memberUid] = { displayName: "Unknown User", photoURL: "https://ionicframework.com/docs/img/demos/avatar.svg"}; // ユーザが見つからない場合のデフォルト値
+    }
+  }
+  return speakerUidDict;
+}
+
+export { CreateUserdoc, GetUserdoc, GetTalkdoc, GetSpeakerUidDict };
+export type { UidDisplayNameDict, Userdoctype, TalkContent, GroupTalk, GroupList, DisplayNameandPhotoURL };

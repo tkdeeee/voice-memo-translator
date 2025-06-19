@@ -9,6 +9,7 @@ import Home from './pages/Home';
 import List from './pages/List';
 import Login from './pages/Login';
 import Setting from './pages/Setting';
+import AddFriend from './pages/AddFriend';
 import ProtectRouter from './ProtectRouter';
 import Talk from './pages/Talk';
 import { CreateUserdoc } from './firebase/firestore';
@@ -109,6 +110,12 @@ const App: React.FC = () => {
           <Route exact path="/setting">
             <ProtectRouter user = {user}>
               <Setting />
+            </ProtectRouter>
+          </Route>
+
+          <Route exact path="/friend/add">
+            <ProtectRouter user = {user}>
+              <AddFriend />
             </ProtectRouter>
           </Route>
 

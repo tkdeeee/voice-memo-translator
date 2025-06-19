@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { IonPage, IonHeader, IonTitle, IonContent, IonIcon, IonButton, IonImg, IonItem, IonToolbar, IonButtons, IonBackButton} from '@ionic/react';
-import { logoGoogle } from 'ionicons/icons';
+import { logoGoogle, documentsOutline } from 'ionicons/icons';
 import { GetUserdoc } from '../firebase/firestore';
 import { getAuth, signOut } from 'firebase/auth';
 import type { Userdoctype } from '../firebase/firestore';
@@ -18,6 +18,7 @@ const Setting: React.FC = () => {
                 if(userData){
                     console.log(userData.photoURL);
                 };
+                console.log(user);
             })
         }
     }, [user]);
@@ -31,14 +32,22 @@ const Setting: React.FC = () => {
         });
     };
 
+    async function handleCopy(text: string){
+        await navigator.clipboard.writeText(text).then(() => {
+            console.log('Copied to clipboard:', text);
+        }).catch((err) => {
+            console.error('Failed to copy text:', err);
+        });
+    };
+
     return(
         <IonPage>
             <IonHeader>
-                <IonToolbar>
+                <IonToolbar class="ion-text-center">
                     <IonButtons slot='start'>
                         <IonBackButton defaultHref='/home'></IonBackButton>
                     </IonButtons>
-                    <IonTitle class="ion-text-center">Setting</IonTitle>
+                    <IonTitle>Setting</IonTitle>
                 </IonToolbar>
             </IonHeader>
             <IonContent>
@@ -47,7 +56,13 @@ const Setting: React.FC = () => {
                         <IonImg class="ion-padding-top" src={userdoc.photoURL} alt="Your Icon Is Displayed here"></IonImg>
                         <IonItem>{userdoc.displayName}</IonItem>
                         <IonItem>{userdoc.email}</IonItem>
-                        <IonItem>{userdoc.uid}</IonItem>
+                        
+                        <IonItem style={{marginBottom: "20px"}}>
+                            <p style={{paddingRight: "10px"}}>{userdoc.uid}</p>
+                            <IonButton  className='white-button' onClick={() => (user ? handleCopy(user.uid) : console.log("user is null."))}>
+                                <IonIcon icon={documentsOutline}></IonIcon>
+                            </IonButton>
+                        </IonItem>
                         <IonButton onClick={SignOut}>Sign Out</IonButton>
                     </div>
 

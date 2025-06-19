@@ -76,7 +76,7 @@ const Home: React.FC = () => {
       <IonHeader>
         <IonToolbar>
           <IonTitle class="ion-text-center">音声メモアプリ</IonTitle>
-          <IonButton slot='end' routerLink='/setting'>
+          <IonButton slot='end' routerLink='/setting' className="white-button">
             <IonIcon icon={settingsOutline}></IonIcon>
           </IonButton>
         </IonToolbar>

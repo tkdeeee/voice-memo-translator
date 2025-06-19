@@ -1,7 +1,65 @@
 .talkcontainer {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
+    --padding-start: 10px;
+    --padding-end: 10px;
+}
+
+.message-wrapper {
+    display: flex;
+    align-items: flex-start;
+    gap: 5px;
+    max-width: 50%; 
+}
+
+.message-wrapper.own {
+    flex-direction: row-reverse;
+    margin-left: auto;
+}
+
+.message-wrapper.other {
+    flex-direction: row;
+    margin-right: auto;
+}
+
+.message-content {
+    max-width: 100%;
+}
+
+.username {
+    margin: 0 0 4px 0;
+    font-size: 0.8rem;
+    color: var(--ion-color-medium);
+}
+
+.own-message .username{
+    text-align: right;
+}
+
+.message-text {
+    margin: 0;
+    font-size: 1rem;
+    background: var(--ion-color-light);
+    padding: 8px 12px;
+    border-radius: 16px;
+}
+
+.own-message .message-text {
+    background: var(--ion-color-primary);
+    color: white;
+}
+
+.usericon {
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+    /* margin-top: 20px; ユーザー名の下、メッセージの始まりあたりに配置 */
+}
+
+.own-message,
+.other-message {
+    --padding-start: 0;
+    --padding-end: 0;
+    --inner-padding-end: 0;
+    --inner-padding-start: 0;
+    padding-top: 10px;
+    padding-bottom: 10px;
 }
