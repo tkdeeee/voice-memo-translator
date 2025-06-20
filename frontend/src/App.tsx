@@ -62,7 +62,15 @@ const App: React.FC = () => {
     setUser(user);
     setIsLoading(false);
     if(user && user.displayName && user.photoURL && user.email){
-      CreateUserdoc(user.uid, user.photoURL, user.displayName, user.email);
+      const userObject = {
+        uid: user.uid,
+        displayName: user.displayName,
+        photoURL: user.photoURL,
+        email: user.email,
+        group: [],
+        friends: []
+      };
+      CreateUserdoc(userObject);
     };
   });
 

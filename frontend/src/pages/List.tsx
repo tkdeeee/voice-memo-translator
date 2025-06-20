@@ -5,13 +5,17 @@ import { auth, app, db } from '../firebase/config';
 import VoiceRecorderComponent from '../components/VoiceRecorder';
 import { GetUserdoc } from '../firebase/firestore';
 import { getAuth } from 'firebase/auth';
-import type { Userdoctype, GroupList } from '../firebase/firestore';
+import { Userdoctype, GroupList, CreateUserdoc } from '../firebase/firestore';
 import { settingsOutline } from 'ionicons/icons';
+import { useDispatch, useSelector } from 'react-redux';
+import type { RootState, AppDispatch } from '../reducks/store/store';
 
 
 const List: React.FC = () => {
     const [grouplist, setGroupList] = useState<GroupList[]|null>(null);
     const [user, setUser] = useState(getAuth().currentUser);
+    const dispatch = useDispatch<AppDispatch>();
+    const friends = useSelector((state: RootState) => state.friends);
 
     useEffect(() => {
         if(user?.uid){
@@ -19,10 +23,36 @@ const List: React.FC = () => {
                 if(userData?.group){
                     setGroupList(userData.group);
                     console.log(userData.group);
+                    console.log(friends);
                 };
+                if(userData?.friends){
+                    dispatch({ type: 'FETCH_FRIENDS', payload: userData.friends });
+                    
+                }
             });
+
+            // GetUserdoc("testfriend").then((userData) =>{
+            //     if(userData?.group){
+            //         console.log("Test friend:", userData);
+            //         const testfriend = {
+            //             ...userData,
+            //             uid: "testfriendtestfriend",
+            //         }
+            //         CreateUserdoc(testfriend).then(() => {
+            //             console.log("Test friend created successfully.");
+            //         }).catch((error) => {
+            //             console.error("Error creating test friend:", error);
+            //         });
+            //     };
+            // });
         };
+
+        
     }, [user]);
+
+    useEffect(() => {
+        console.log("Friends updated in Redux store:", friends);
+    }, [friends]);
 
 
     return(

@@ -12,8 +12,15 @@ type Userdoctype = {
   displayName: string,
   photoURL: string,
   email: string,
-  group: GroupList[]
+  group: GroupList[],
+  friends: Frienddoctype[]
 };
+
+type Frienddoctype = {
+  displayName: string,
+  photoURL: string,
+  uid: string,
+}
 
 type Groupconfig = {
   member : string[],
@@ -52,7 +59,21 @@ function isUserdoctype(data: any): data is Userdoctype{
     typeof data.displayName === 'string' &&
     typeof data.photoURL === 'string' &&
     typeof data.email === 'string' &&
-    Array.isArray(data.group)
+    Array.isArray(data.group) &&
+    data.group.every((item: any) =>
+      typeof item === 'object' &&
+      item !== null &&
+      typeof item.name === 'string' &&
+      typeof item.groupid === 'string'
+    ) &&
+    Array.isArray(data.friends) &&
+    data.friends.every((item: any) =>
+      typeof item === 'object' &&
+      item !== null &&
+      typeof item.displayName === 'string' &&
+      typeof item.photoURL === 'string' &&
+      typeof item.uid === 'string'
+    )
   );
 }
 
@@ -80,17 +101,20 @@ function isGroupTalkdoctype(data: any): data is GroupTalk{
 }
 
 //authenticationにユーザがいなければfirestoreに新しくユーザデータベースを作成
-async function CreateUserdoc(uid:string, photoURL:string, displayName: string, email: string) {
-  const userDoc = doc(db, "users", uid);
+async function CreateUserdoc(user: Userdoctype): Promise<void>{
+  const userDoc = doc(db, "users", user.uid);
   const docSnap = await getDoc(userDoc);
   // console.log(docSnap.data());
   if(!docSnap.data()){
-    await setDoc(doc(db, "users", uid), {
-      uid: uid,
-      displayName: displayName,
-      photoURL: photoURL,
-      email: email,
+    await setDoc(doc(db, "users", user.uid), {
+      uid: user.uid,
+      displayName: user.displayName,
+      photoURL: user.photoURL,
+      email: user.email,
       group: [] as GroupList[],
+      friends: [] as Frienddoctype[]
+      // group: user.group,
+      // friends: user.friends
     });
   };
 };
@@ -105,6 +129,18 @@ async function GetUserdoc(uid:string) : Promise<Userdoctype|null>{
   return  null;
 }
 
+async function GetFrienddoc(uid:string) : Promise<Frienddoctype|null>{
+  const userDoc = doc(db, "users", uid);
+  const docSnap = (await getDoc(userDoc)).data();
+  if (docSnap && typeof docSnap.displayName === 'string' && typeof docSnap.photoURL === 'string' && typeof docSnap.uid === 'string') {
+    return {
+      displayName: docSnap.displayName,
+      photoURL: docSnap.photoURL,
+      uid: docSnap.uid
+    } as Frienddoctype;
+  }
+  return null;
+}
 
 //firestoreのtalkからgroupidのトーク履歴、グループ情報を取得、(in)groupid:srting/(out)docsnap:GroupTalk
 async function GetTalkdoc(groupid:string) : Promise<GroupTalk|null>{
@@ -135,5 +171,5 @@ async function GetSpeakerUidDict(groupid:string): Promise<UidDisplayNameDict | n
   return speakerUidDict;
 }
 
-export { CreateUserdoc, GetUserdoc, GetTalkdoc, GetSpeakerUidDict };
-export type { UidDisplayNameDict, Userdoctype, TalkContent, GroupTalk, GroupList, DisplayNameandPhotoURL };
+export { CreateUserdoc, GetUserdoc, GetTalkdoc, GetSpeakerUidDict, GetFrienddoc };
+export type { UidDisplayNameDict, Userdoctype, TalkContent, GroupTalk, GroupList, DisplayNameandPhotoURL, Frienddoctype };
