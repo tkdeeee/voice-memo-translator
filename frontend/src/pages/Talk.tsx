@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from 'react';
 import { auth, app, db } from '../firebase/config';
 import { getAuth } from 'firebase/auth';
 import type { GroupTalk, Dm, TalkContent } from '../firebase/firestore';
-import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { doc, setDoc, getDoc, onSnapshot } from 'firebase/firestore';
 import { settingsOutline } from 'ionicons/icons';
 import { useParams } from 'react-router-dom';
 import { GetTalkdoc, GetSpeakerUidDict, DisplayNameandPhotoURL, GetDmdoc } from '../firebase/firestore';
@@ -21,38 +21,91 @@ const Talk: React.FC = () => {
     const inputValue = useRef<HTMLIonTextareaElement>(null);
     const friends = useSelector((state: RootState) => state.friends); // Adjust the type according to your Redux store structure
     const dispatch = useDispatch();
+    const ionContentRef = useRef<HTMLIonContentElement>(null);
+
+    // useEffect(() => {
+    //     let unsubscribe: (() => void) | undefined;
+
+    //     if(talktype == 'group'){
+    //         GetTalkdoc(groupid).then((talkData) =>{
+    //             if(talkData){
+    //                 setGroupTalk(talkData);
+    //                 console.log(talkData);
+
+    //                 GetSpeakerUidDict(talkData.groupconfig.member).then((speakerUidDict) => {
+    //                     if(speakerUidDict){
+    //                         setSpeakerUidDict(speakerUidDict);
+    //                         console.log(speakerUidDict);
+    //                     };
+    //                 });
+    //             };
+    //         });
+            
+    //     } else if(talktype == 'dm') {
+    //         GetDmdoc(groupid).then((dmData) => {
+    //             if(dmData){
+    //                 setGroupTalk(dmData);
+    //                 console.log(dmData);
+    //                 GetSpeakerUidDict(dmData.member).then((speakerUidDict) => {
+    //                     if(speakerUidDict){
+    //                         setSpeakerUidDict(speakerUidDict);
+    //                         console.log(speakerUidDict);
+    //                     };
+    //                 });
+    //             };
+    //         });
+    //     }
+    // }, []);
 
     useEffect(() => {
-        if(talktype == 'group'){
-            GetTalkdoc(groupid).then((talkData) =>{
-                if(talkData){
-                    setGroupTalk(talkData);
-                    console.log(talkData);
+        let unsubscribe: (() => void) | undefined;
 
-                    GetSpeakerUidDict(talkData.groupconfig.member).then((speakerUidDict) => {
-                        if(speakerUidDict){
-                            setSpeakerUidDict(speakerUidDict);
-                            console.log(speakerUidDict);
-                        };
-                    });
-                };
+        if(talktype == 'group'){
+            const talkDocRef = doc(db, 'talks', groupid);
+            unsubscribe = onSnapshot(talkDocRef, (snapshot) => {
+                const data = snapshot.data();
+                if (data) {
+                    setGroupTalk(data as GroupTalk);
+                    // 必要ならspeakerUidDictも再取得
+                    if ('groupconfig' in data) {
+                        GetSpeakerUidDict(data.groupconfig.member).then((speakerUidDict) => {
+                            if(speakerUidDict){
+                                setSpeakerUidDict(speakerUidDict);
+                            }
+                        });
+                    }
+                }
             });
             
         } else if(talktype == 'dm') {
-            GetDmdoc(groupid).then((dmData) => {
-                if(dmData){
-                    setGroupTalk(dmData);
-                    console.log(dmData);
-                    GetSpeakerUidDict(dmData.member).then((speakerUidDict) => {
-                        if(speakerUidDict){
-                            setSpeakerUidDict(speakerUidDict);
-                            console.log(speakerUidDict);
-                        };
-                    });
-                };
+            const dmDocRef = doc(db, 'dm', groupid);
+            unsubscribe = onSnapshot(dmDocRef, (snapshot) => {
+                const data = snapshot.data();
+                if (data) {
+                    setGroupTalk(data as Dm);
+                    // 必要ならspeakerUidDictも再取得
+                    if ('member' in data) {
+                        GetSpeakerUidDict(data.member).then((speakerUidDict) => {
+                            if(speakerUidDict){
+                                setSpeakerUidDict(speakerUidDict)
+                            }
+                        });
+                    }
+                }
+                console.log(snapshot.metadata.hasPendingWrites);
             });
         }
+
+        return () => {
+            if (unsubscribe) unsubscribe();
+        };
     }, []);
+
+    useEffect(() => {
+        if (ionContentRef.current){
+            ionContentRef.current.scrollToBottom(300);
+        }
+    }, [grouptalk?.talkhistory]);
 
     
 
@@ -73,7 +126,7 @@ const Talk: React.FC = () => {
                             </IonTitle>
                         </IonToolbar>
                     </IonHeader>
-                    <IonContent class='talkcontainer'>
+                    <IonContent class='talkcontainer' ref={ionContentRef} >
                         <IonList lines='none' style={{display: "flex", flexDirection: "column"}}>
                             {grouptalk.talkhistory.map((talk, index) => {
                             return(   
@@ -132,10 +185,13 @@ const Talk: React.FC = () => {
                                         }
                                         if(talktype == 'dm') {
                                             const dmDocRef = doc(db, 'dm', groupid);
-                                            setDoc(dmDocRef, {talkhistory: [...grouptalk?.talkhistory || [], newTalkContent]}, {merge: true});
+                                            setDoc(dmDocRef, {talkhistory: [...grouptalk.talkhistory|| [], newTalkContent]}, {merge: true});
+                                            
                                         }else if(talktype == 'group') {
                                             const talkDocRef = doc(db, 'talks', groupid);
-                                            setDoc(talkDocRef, {talkhistory: [...grouptalk?.talkhistory || [], newTalkContent]}, {merge: true});
+                                            setDoc(talkDocRef, {talkhistory: [...grouptalk.talkhistory || [], newTalkContent]}, {merge: true});
+
+                                                    
                                         }
                                     }
                                 }}}>
