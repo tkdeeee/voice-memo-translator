@@ -3,7 +3,7 @@ import { micOutline, saveOutline, documentTextOutline, handLeftOutline, addOutli
 import { useEffect, useState, useRef } from 'react';
 import { auth, app, db } from '../firebase/config';
 import VoiceRecorderComponent from '../components/VoiceRecorder';
-import { GetUserdoc, GetFrienddoc } from '../firebase/firestore';
+import { GetUserdoc, GetFrienddoc, CreateDMdoc, UpdateFrienddoc, UpdateMaybeFrienddoc } from '../firebase/firestore';
 import { getAuth } from 'firebase/auth';
 import type { Userdoctype, GroupList, Frienddoctype } from '../firebase/firestore';
 import { settingsOutline } from 'ionicons/icons';
@@ -28,10 +28,36 @@ const AddFriend: React.FC = () => {
         console.log("Input Value:", value);
     };
 
+    async function AddFriend() {
+        
+        if(user?.uid && friendData){
+            const dmid = await CreateDMdoc(user.uid, friendData);
+            console.log("DM created with ID:", dmid);
+            friendData.dmid = dmid; // Add dmid to friendData
+
+            await UpdateFrienddoc(user.uid, friendData);
+            console.log("Friend added successfully:", friendData);
+            if (user.displayName && user.photoURL) {
+                const userData = {
+                    displayName: user.displayName,
+                    photoURL: user.photoURL,
+                    uid: user.uid,
+                    dmid: dmid, // Add dmid to userData
+                };
+                await UpdateMaybeFrienddoc(friendData.uid, userData);
+                console.log("Maybe friend updated successfully:", userData);
+            }
+            dispatch({ type: 'ADD_FRIEND', payload: friendData });
+        }
+        setIsModalOpen(false);
+    };
+
     useEffect(() => {
         console.log("Input Value:", inputID);
-        if(inputID.length == 20){
-            if(inputID !== user?.uid && friends.some((friend: Frienddoctype) => friend.uid !== inputID)){
+        if(inputID.length == 28 || 20){
+            console.log(user?.uid);
+            console.log("Friends:", friends);
+            if(inputID !== user?.uid && (friends.some((friend: Frienddoctype) => friend.uid !== inputID) || friends.length === 0)){
                 GetFrienddoc(inputID).then((friendData) => {
                     if(friendData){
                         console.log("Friend data found:", friendData);
@@ -39,6 +65,7 @@ const AddFriend: React.FC = () => {
                         if(inputValue.current){
                             inputValue.current.value = "";
                         }
+                        setInputID("");
                         setIsModalOpen(true);
                     } else {
                         console.log("Friend already exists or invalid ID.");
@@ -70,12 +97,12 @@ const AddFriend: React.FC = () => {
                         <IonInput
                             ref={inputValue} 
                             counter={true} 
-                            maxlength={20} 
+                            maxlength={28} 
                             class='ion-padding' 
                             placeholder="友達のIDを入力して！"
                             onIonInput={handleInputChange}
                             counterFormatter={(inputLength, maxLength) => 
-                                inputLength == 20 ? "OK!" : `文字数不足: ${inputLength}/${maxLength}`
+                                inputLength == 28 ? "OK!" : `文字数不足: ${inputLength}/${maxLength}`
                             }
                         ></IonInput>
                         {/* <IonButton 
@@ -94,25 +121,37 @@ const AddFriend: React.FC = () => {
                     //         inputValue.current.value = "";
                     //     }
                     // }}
-                    initialBreakpoint={0.5} 
-                    breakpoints={[0, 0.5, 1]}>
+                    initialBreakpoint={0.4} 
+                    breakpoints={[0, 0.4, 1]}>
                     <IonHeader>
                         <IonToolbar>
                             <IonTitle>友達を追加</IonTitle>
                         </IonToolbar>
                     </IonHeader>
-                    <IonContent>
-                        <IonAvatar>
-                            <img src={friendData?.photoURL || "https://via.placeholder.com/150"} alt="Friend Avatar" />
-                        </IonAvatar>
-                        <IonList>
-                            <IonItem>
-                                <h2>{friendData?.displayName || "Unknown User"}</h2>
-                            </IonItem>
-                            <IonItem>
-                                <p>UID: {friendData?.uid || "Unknown UID"}</p>
-                            </IonItem>
-                        </IonList>
+                    <IonContent class="ion-padding">
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center',}}>
+                            <IonAvatar>
+                                <img src={friendData?.photoURL || "https://via.placeholder.com/150"} alt="Friend Avatar" />
+                            </IonAvatar>
+                            <IonList className='ion-padding'>
+                                <IonItem>
+                                    <h2>{friendData?.displayName || "Unknown User"}</h2>
+                                </IonItem>
+                                <IonItem>
+                                    <p>UID: {friendData?.uid || "Unknown UID"}</p>
+                                </IonItem>
+                                <div style={{ display: 'flex', justifyContent: 'space-between'}}>
+                                    <IonButton onClick={() => {setIsModalOpen(false)}}>
+                                        キャンセル
+                                    </IonButton>
+                                    <IonButton onClick={() => {AddFriend()}}>
+                                        追加
+                                    </IonButton>
+                                </div>
+                            </IonList>
+
+                            
+                        </div>
                     </IonContent>
                 </IonModal>
             </IonContent>

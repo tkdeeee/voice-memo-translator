@@ -68,7 +68,8 @@ const App: React.FC = () => {
         photoURL: user.photoURL,
         email: user.email,
         group: [],
-        friends: []
+        friends: [],
+        maybefriends: []
       };
       CreateUserdoc(userObject);
     };
@@ -109,7 +110,7 @@ const App: React.FC = () => {
             </ProtectRouter>
           </Route>
 
-          <Route path="/talk/:groupid">
+          <Route path="/talk/:talktype/:groupid">
             <ProtectRouter user = {user}>
               <Talk />
             </ProtectRouter>

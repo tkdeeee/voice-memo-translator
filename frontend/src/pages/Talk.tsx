@@ -3,34 +3,55 @@ import { micOutline, saveOutline, documentTextOutline, handLeftOutline, text, se
 import { useEffect, useState, useRef } from 'react';
 import { auth, app, db } from '../firebase/config';
 import { getAuth } from 'firebase/auth';
-import type { GroupTalk, TalkContent } from '../firebase/firestore';
+import type { GroupTalk, Dm, TalkContent } from '../firebase/firestore';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { settingsOutline } from 'ionicons/icons';
-import { useParams } from 'react-router';
-import { GetTalkdoc, GetSpeakerUidDict, DisplayNameandPhotoURL } from '../firebase/firestore';
+import { useParams } from 'react-router-dom';
+import { GetTalkdoc, GetSpeakerUidDict, DisplayNameandPhotoURL, GetDmdoc } from '../firebase/firestore';
+import { useDispatch, useSelector } from 'react-redux';
+import type { RootState, AppDispatch } from '../reducks/store/store';
 import './Talk.css';
 
 
 const Talk: React.FC = () => {
-    const [grouptalk, setGroupTalk] = useState<GroupTalk|null>(null);
+    const [grouptalk, setGroupTalk] = useState<GroupTalk|Dm|null>(null);
     const [speakerUidDict, setSpeakerUidDict] = useState<Record<string, DisplayNameandPhotoURL>>({});
     const [user, setUser] = useState(getAuth().currentUser);
-    const {groupid} = useParams<{ groupid: string}>();
+    const { talktype, groupid } = useParams<{ talktype: string; groupid: string }>();
     const inputValue = useRef<HTMLIonTextareaElement>(null);
+    const friends = useSelector((state: RootState) => state.friends); // Adjust the type according to your Redux store structure
+    const dispatch = useDispatch();
 
     useEffect(() => {
-        GetTalkdoc(groupid).then((talkData) =>{
-            if(talkData){
-                setGroupTalk(talkData);
-                console.log(talkData);
-            };
-        });
-        GetSpeakerUidDict(groupid).then((speakerUidDict) => {
-            if(speakerUidDict){
-                setSpeakerUidDict(speakerUidDict);
-                console.log(speakerUidDict);
-            };
-        });
+        if(talktype == 'group'){
+            GetTalkdoc(groupid).then((talkData) =>{
+                if(talkData){
+                    setGroupTalk(talkData);
+                    console.log(talkData);
+
+                    GetSpeakerUidDict(talkData.groupconfig.member).then((speakerUidDict) => {
+                        if(speakerUidDict){
+                            setSpeakerUidDict(speakerUidDict);
+                            console.log(speakerUidDict);
+                        };
+                    });
+                };
+            });
+            
+        } else if(talktype == 'dm') {
+            GetDmdoc(groupid).then((dmData) => {
+                if(dmData){
+                    setGroupTalk(dmData);
+                    console.log(dmData);
+                    GetSpeakerUidDict(dmData.member).then((speakerUidDict) => {
+                        if(speakerUidDict){
+                            setSpeakerUidDict(speakerUidDict);
+                            console.log(speakerUidDict);
+                        };
+                    });
+                };
+            });
+        }
     }, []);
 
     
@@ -45,7 +66,11 @@ const Talk: React.FC = () => {
                             <IonButtons slot='start'>
                                 <IonBackButton defaultHref='/home'></IonBackButton>
                             </IonButtons>
-                            <IonTitle>{grouptalk.groupconfig.name}</IonTitle>
+                            <IonTitle>
+                                {'groupconfig' in grouptalk
+                                    ? grouptalk.groupconfig.name
+                                    : friends.find(friend => friend.uid == (grouptalk.memberdict[user?.uid || ''] as string)?.[0])?.displayName || 'unknown friend'}
+                            </IonTitle>
                         </IonToolbar>
                     </IonHeader>
                     <IonContent class='talkcontainer'>
@@ -105,9 +130,13 @@ const Talk: React.FC = () => {
                                             // Here you would typically also update the Firestore document with the new talk content
                                             console.log("New talk content added:", newTalkContent);
                                         }
-
-                                        const talkDocRef = doc(db, 'talks', groupid);
-                                        setDoc(talkDocRef, {talkhistory: [...grouptalk?.talkhistory || [], newTalkContent]}, {merge: true});
+                                        if(talktype == 'dm') {
+                                            const dmDocRef = doc(db, 'dm', groupid);
+                                            setDoc(dmDocRef, {talkhistory: [...grouptalk?.talkhistory || [], newTalkContent]}, {merge: true});
+                                        }else if(talktype == 'group') {
+                                            const talkDocRef = doc(db, 'talks', groupid);
+                                            setDoc(talkDocRef, {talkhistory: [...grouptalk?.talkhistory || [], newTalkContent]}, {merge: true});
+                                        }
                                     }
                                 }}}>
                                 <IonIcon slot="icon-only" icon={sendOutline} />

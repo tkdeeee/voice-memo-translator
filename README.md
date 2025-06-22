@@ -1,44 +1,6 @@
-backend/
-│
-├── app/
-│   ├── __init__.py
-│   ├── main.py          # FastAPIアプリ
-│   ├── models.py        # データモデル
-│   ├── database.py      # DB接続
-│   └── api/
-│       ├── __init__.py
-│       ├── voice.py     # 音声処理API
-│       ├── translation.py # 翻訳API
-│       └── notes.py     # メモ操作API
-│
-├── .env                 # 環境変数（APIキーなど）
-└── requirements.txt     # 依存関係
 
-frontend/voice-memo-app/
-│
-├── src/
-│   ├── App.tsx
-│   ├── theme/
-│   ├── components/
-│   │   ├── VoiceRecorder.tsx  # 音声録音コンポーネント
-│   │   ├── NotesList.tsx      # メモリスト
-│   │   ├── TranslationView.tsx # 翻訳ビュー
-│   │   └── ...
-│   │
-│   ├── pages/
-│   │   ├── Home.tsx
-│   │   ├── NewNote.tsx
-│   │   ├── NoteDetail.tsx
-│   │   └── Settings.tsx
-│   │
-│   └── services/
-│       ├── api.ts       # APIリクエスト
-│       ├── voiceService.ts
-│       └── translationService.ts
-│
-└── ...
 
-8. 次のステップ
+次のステップ
 
 1音声録音コンポーネントの実装
 2Vosk APIの設定と音声認識の実装
@@ -47,3 +9,10 @@ frontend/voice-memo-app/
 5ユーザー認証の追加
 6UI/UXの改善
 7モバイルビルド設定
+
+
+やることリスト
+認証などを考えず、とりあえずトーク機能、友達追加、グループ作成機能を実装する
+トーク画面遷移時に、URLの中にdmidと相手のUIDを入れる方法にする
+友達追加、グループ作成、会話機能ができたら認証を考えて、特定の人間だけがトークを参照できるようにする
+音声をやり取りするために機能、uiを構築
