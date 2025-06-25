@@ -1,0 +1,10 @@
+.app-mobile-frame,
+.app-mobile-frame > .ion-app,
+.app-mobile-frame .ion-page {
+  max-width: 430px;
+  margin: 0 auto;
+  min-height: 100vh;
+  background: #fff;
+  box-shadow: 0 0 16px rgba(0,0,0,0.15);
+  width: 100%;
+}

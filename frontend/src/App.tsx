@@ -13,6 +13,7 @@ import AddFriend from './pages/AddFriend';
 import ProtectRouter from './ProtectRouter';
 import Talk from './pages/Talk';
 import { CreateUserdoc } from './firebase/firestore';
+import './App.css';
 
 /* Core CSS required for Ionic components to work properly */
 import '@ionic/react/css/core.css';
@@ -82,58 +83,62 @@ const App: React.FC = () => {
 
   if (isLoading) {
     return (
-      <IonApp>
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-          Loading...
-        </div>
-      </IonApp>
+        <IonApp>
+          <div className='app-mobile-frame'>
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+              Loading...
+            </div>
+          </div>
+        </IonApp>
     );
   }
 
   return(
     <IonApp>
-      <IonReactRouter>
-        <IonRouterOutlet>
-          <Route exact path="/login">
-            {user ? <Redirect to="/home" /> : <Login/>}
-          </Route>
+      <div className='app-mobile-frame'>
+        <IonReactRouter>
+          <IonRouterOutlet>
+            <Route exact path="/login">
+              {user ? <Redirect to="/home" /> : <Login/>}
+            </Route>
 
-          <Route exact path="/home">
-            <ProtectRouter user = {user}>
-              <Home />
-            </ProtectRouter>
-          </Route>
+            <Route exact path="/home">
+              <ProtectRouter user = {user}>
+                <Home />
+              </ProtectRouter>
+            </Route>
 
-          <Route exact path="/list">
-            <ProtectRouter user = {user}>
-              <List />
-            </ProtectRouter>
-          </Route>
+            <Route exact path="/list">
+              <ProtectRouter user = {user}>
+                <List />
+              </ProtectRouter>
+            </Route>
 
-          <Route path="/talk/:talktype/:groupid">
-            <ProtectRouter user = {user}>
-              <Talk />
-            </ProtectRouter>
-          </Route>
+            <Route path="/talk/:talktype/:groupid">
+              <ProtectRouter user = {user}>
+                <Talk />
+              </ProtectRouter>
+            </Route>
 
-          <Route exact path="/setting">
-            <ProtectRouter user = {user}>
-              <Setting />
-            </ProtectRouter>
-          </Route>
+            <Route exact path="/setting">
+              <ProtectRouter user = {user}>
+                <Setting />
+              </ProtectRouter>
+            </Route>
 
-          <Route exact path="/friend/add">
-            <ProtectRouter user = {user}>
-              <AddFriend />
-            </ProtectRouter>
-          </Route>
+            <Route exact path="/friend/add">
+              <ProtectRouter user = {user}>
+                <AddFriend />
+              </ProtectRouter>
+            </Route>
 
-          <Route exact path="/">
-            {user ? <Redirect to="/home" /> : <Redirect to="/login" />}
-          </Route>
+            <Route exact path="/">
+              {user ? <Redirect to="/home" /> : <Redirect to="/login" />}
+            </Route>
 
-        </IonRouterOutlet>
-      </IonReactRouter>
+          </IonRouterOutlet>
+        </IonReactRouter>
+      </div>
     </IonApp>
   );
 };

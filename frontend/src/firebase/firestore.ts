@@ -34,15 +34,17 @@ type TalkContent = {
   lettercontent: string
 }
 
-type GroupTalk = {
-  talkhistory: TalkContent[],
+type BaseTalk = {
+  talkhistory: TalkContent[];
+}
+
+type GroupTalk = BaseTalk & {
   groupconfig: Groupconfig
 }
 
-type Dm = {
+type Dm = BaseTalk & {
   member: string[],
   memberdict: {[uid: string]: string }, 
-  talkhistory: TalkContent[]
 }
 
 type DisplayNameandPhotoURL = {
@@ -56,8 +58,8 @@ type UidDisplayNameDict = {
 
 
 
-//Userdoctype型ガード関数
-function isUserdoctype(data: any): data is Userdoctype{
+//自分自身のユーザ情報を取得するときのUserSelfdoctype型ガード関数
+function isUserSelfdoctype(data: any): data is Userdoctype{
   return (
     typeof data === 'object' &&
     data !== null &&
@@ -78,8 +80,29 @@ function isUserdoctype(data: any): data is Userdoctype{
       item !== null &&
       typeof item.displayName === 'string' &&
       typeof item.photoURL === 'string' &&
-      typeof item.uid === 'string'
+      typeof item.uid === 'string' &&
+      typeof item.dmid === 'string'
+    )&&
+    Array.isArray(data.maybefriends) &&
+    data.maybefriends.every((item: any) =>
+      typeof item === 'object' &&
+      item !== null &&
+      typeof item.displayName === 'string' &&
+      typeof item.photoURL === 'string' &&
+      typeof item.uid === 'string' &&
+      typeof item.dmid === 'string'
     )
+  );
+}
+
+//他人のユーザ情報を取得するときのAnotherUserdoctype型ガード関数
+function isAnotherUserdoctype(data: any): data is Userdoctype{
+  return (
+    typeof data === 'object' &&
+    data !== null &&
+    typeof data.uid === 'string' &&
+    typeof data.displayName === 'string' &&
+    typeof data.photoURL === 'string'
   );
 }
 
@@ -146,22 +169,39 @@ async function CreateUserdoc(user: Userdoctype): Promise<void>{
       // group: user.group,
       // friends: user.friends
     });
+
+    await setDoc(doc(db, "public_profiles", user.uid), {
+      uid: user.uid,
+      displayName: user.displayName,
+      photoURL: user.photoURL
+    });
   };
 };
 
-//firestoreのユーザDBからユーザ情報を取得、(in)uid:sring/ (out)docsnap:Userdoctype
-async function GetUserdoc(uid:string) : Promise<Userdoctype|null>{
+//firestoreのユーザDBから自分のユーザ情報を取得、(in)uid:sring/ (out)docsnap:Userdoctype
+async function GetUserSelfdoc(uid:string) : Promise<Userdoctype|null>{
   const userDoc = doc(db, "users", uid);
   const docSnap = (await getDoc(userDoc)).data();
-  if (isUserdoctype(docSnap)){
+  if (isUserSelfdoctype(docSnap)){
     return docSnap as Userdoctype;
   }
   return  null;
 }
 
+//firestoreのユーザDBから他人のユーザ情報を取得、(in)uid:sring/ (out)docsnap:Userdoctype
+async function GetAnotherUserdoc(uid:string) : Promise<Userdoctype|null>{
+  const userDoc = doc(db, "public_profiles", uid);
+  const docSnap = (await getDoc(userDoc)).data();
+  if (isAnotherUserdoctype(docSnap)){
+    return docSnap as Userdoctype;
+  }
+  return  null;
+}
+
+
 //新規友達追加orキャンセル選択時に使用、firestoreのusersからuidに紐づく友達情報を取得、(in)uid:string/(out)docsnap:Frienddoctype
 async function GetFrienddoc(uid:string) : Promise<Frienddoctype|null>{
-  const userDoc = doc(db, "users", uid);
+  const userDoc = doc(db, "public_profiles", uid);
   const docSnap = (await getDoc(userDoc)).data();
   if (docSnap && typeof docSnap.displayName === 'string' && typeof docSnap.photoURL === 'string' && typeof docSnap.uid === 'string') {
     return {
@@ -241,7 +281,7 @@ async function GetDmdoc(dmid:string) : Promise<Dm|null>{
 async function GetSpeakerUidDict(groupmember:string[]): Promise<UidDisplayNameDict | null> {
   const speakerUidDict: UidDisplayNameDict = {};
   for(const memberUid of groupmember) {
-    const userDoc = await GetUserdoc(memberUid);
+    const userDoc = await GetAnotherUserdoc(memberUid);
     if (userDoc) {
       speakerUidDict[memberUid] = { displayName: userDoc.displayName, photoURL: userDoc.photoURL }; // ユーザのdisplayNameとphotoURLを格納
     } else {
@@ -251,5 +291,5 @@ async function GetSpeakerUidDict(groupmember:string[]): Promise<UidDisplayNameDi
   return speakerUidDict;
 }
 
-export { CreateUserdoc, GetUserdoc, GetTalkdoc, GetSpeakerUidDict, GetFrienddoc, CreateDMdoc, UpdateFrienddoc, UpdateMaybeFrienddoc, GetDmdoc };
+export { CreateUserdoc, GetUserSelfdoc, GetAnotherUserdoc, GetTalkdoc, GetSpeakerUidDict, GetFrienddoc, CreateDMdoc, UpdateFrienddoc, UpdateMaybeFrienddoc, GetDmdoc };
 export type { UidDisplayNameDict, Userdoctype, TalkContent, GroupTalk, Dm, GroupList, DisplayNameandPhotoURL, Frienddoctype, Groupconfig };

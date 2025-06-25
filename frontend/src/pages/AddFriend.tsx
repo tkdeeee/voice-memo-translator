@@ -1,9 +1,6 @@
 import { IonContent, IonHeader, IonPage,IonBackButton, IonTitle, IonAvatar, IonToolbar, IonButton, IonIcon, IonModal, IonTextarea, IonButtons, IonItem, IonInput, IonList } from '@ionic/react';
-import { micOutline, saveOutline, documentTextOutline, handLeftOutline, addOutline, duplicateOutline, checkmarkOutline } from 'ionicons/icons';
 import { useEffect, useState, useRef } from 'react';
-import { auth, app, db } from '../firebase/config';
-import VoiceRecorderComponent from '../components/VoiceRecorder';
-import { GetUserdoc, GetFrienddoc, CreateDMdoc, UpdateFrienddoc, UpdateMaybeFrienddoc } from '../firebase/firestore';
+import { GetFrienddoc, CreateDMdoc, UpdateFrienddoc, UpdateMaybeFrienddoc } from '../firebase/firestore';
 import { getAuth } from 'firebase/auth';
 import type { Userdoctype, GroupList, Frienddoctype } from '../firebase/firestore';
 import { settingsOutline } from 'ionicons/icons';
@@ -11,6 +8,7 @@ import { h } from 'ionicons/dist/types/stencil-public-runtime';
 import './AddFriend.css';
 import { useSelector, useDispatch } from 'react-redux';
 import type { RootState, AppDispatch } from '../reducks/store/store';
+import AddFriendModal from '../components/AddFriendModal';
 
 
 const AddFriend: React.FC = () => {
@@ -114,7 +112,7 @@ const AddFriend: React.FC = () => {
                     </IonItem>
                 </div>
 
-                <IonModal 
+                {/* <IonModal 
                     isOpen={isModalOpen} 
                     // onDidDismiss={() => {
                     //     if(inputValue.current?.value){
@@ -153,6 +151,13 @@ const AddFriend: React.FC = () => {
                             
                         </div>
                     </IonContent>
+                </IonModal> */}
+                <IonModal 
+                            isOpen={isModalOpen} 
+                            initialBreakpoint={0.4} 
+                            breakpoints={[0, 0.4, 1]}
+                >
+                    {friendData && <AddFriendModal setIsModalOpen={setIsModalOpen} isModalOpen={isModalOpen} addedFriend={friendData} AddFriendProcess={AddFriend}/>}
                 </IonModal>
             </IonContent>
         </IonPage>

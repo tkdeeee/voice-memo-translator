@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { IonPage, IonHeader, IonTitle, IonContent, IonIcon, IonButton, IonImg, IonItem, IonToolbar, IonButtons, IonBackButton} from '@ionic/react';
 import { logoGoogle, documentsOutline } from 'ionicons/icons';
-import { GetUserdoc } from '../firebase/firestore';
+import { GetUserSelfdoc } from '../firebase/firestore';
 import { getAuth, signOut } from 'firebase/auth';
 import type { Userdoctype } from '../firebase/firestore';
 import './Setting.css';
@@ -13,7 +13,7 @@ const Setting: React.FC = () => {
 
     useEffect(() => {
         if(user?.uid){
-            GetUserdoc(user.uid).then((userData) =>{
+            GetUserSelfdoc(user.uid).then((userData) =>{
                 setUserdoc(userData);
                 if(userData){
                     console.log(userData.photoURL);

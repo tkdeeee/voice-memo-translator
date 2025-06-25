@@ -1,38 +1,49 @@
-import { IonContent, IonHeader, IonPage, IonLabel, IonItemDivider, IonBackButton, IonTitle, IonToolbar, IonButton, IonIcon, IonModal, IonTextarea, IonButtons, IonItem, IonInput, IonList } from '@ionic/react';
+import { IonContent, IonHeader, IonPage, IonLabel, IonItemDivider, IonBackButton, IonTitle, IonToolbar, IonButton, IonIcon, IonModal, IonTextarea, IonButtons, IonItem, IonInput, IonList, IonAvatar } from '@ionic/react';
 import { micOutline, saveOutline, documentTextOutline, handLeftOutline, addOutline, duplicateOutline } from 'ionicons/icons';
 import { useEffect, useState, useRef } from 'react';
 import { auth, app, db } from '../firebase/config';
 import VoiceRecorderComponent from '../components/VoiceRecorder';
-import { Frienddoctype, GetUserdoc } from '../firebase/firestore';
+import { Frienddoctype, Userdoctype, GroupList, CreateUserdoc } from '../firebase/firestore';
 import { getAuth } from 'firebase/auth';
-import { Userdoctype, GroupList, CreateUserdoc } from '../firebase/firestore';
+import { doc, setDoc, getDoc, onSnapshot } from 'firebase/firestore';
 import { settingsOutline } from 'ionicons/icons';
 import { useDispatch, useSelector } from 'react-redux';
 import type { RootState, AppDispatch } from '../reducks/store/store';
+import { maybefriendsReducer } from '../reducks/maybefriends/reducers';
 
 const List: React.FC = () => {
     const [grouplist, setGroupList] = useState<GroupList[]|null>(null);
     const [user, setUser] = useState(getAuth().currentUser);
     const dispatch = useDispatch<AppDispatch>();
     const friends = useSelector((state: RootState) => state.friends);
-    const [maybeFriends, setMaybeFriends] = useState<Frienddoctype[]|null>(null);
+    const maybefriends = useSelector((state: RootState) => state.maybefriends);
 
     useEffect(() => {
+        let unsubscribe: (() => void) | undefined;
         if(user?.uid){
-            GetUserdoc(user.uid).then((userData) =>{
-                if(userData?.group){
-                    setGroupList(userData.group);
-                    console.log(userData.group);
-                    console.log(friends);
+            const userDocRef = doc(db, "users", user.uid);
+            unsubscribe = onSnapshot(userDocRef, (snapshot) => {
+                const userdata = snapshot.data() as Userdoctype;
+                if(userdata){
+                    setGroupList(userdata.group);
+                    dispatch({ type: 'FETCH_FRIENDS', payload: userdata.friends });
+                    dispatch({ type: 'FETCH_MAYBEFRIENDS', payload: userdata.maybefriends });
                 }
-                if(userData?.friends){
-                    dispatch({ type: 'FETCH_FRIENDS', payload: userData.friends });
+            })
+            // GetUserdoc(user.uid).then((userData) =>{
+            //     if(userData?.group){
+            //         setGroupList(userData.group);
+            //         console.log(userData.group);
+            //         console.log(friends);
+            //     }
+            //     if(userData?.friends){
+            //         dispatch({ type: 'FETCH_FRIENDS', payload: userData.friends });
                     
-                }
-                if(userData?.maybefriends){
-                    setMaybeFriends(userData.maybefriends as Frienddoctype[]);
-                }
-            });
+            //     }
+            //     if(userData?.maybefriends){
+            //         setMaybeFriends(userData.maybefriends as Frienddoctype[]);
+            //     }
+            // });
 
             // GetUserdoc("testfriend").then((userData) =>{
             //     if(userData?.group){
@@ -55,7 +66,16 @@ const List: React.FC = () => {
 
     useEffect(() => {
         console.log("Friends updated in Redux store:", friends);
+        console.log("MaybeFriends updated in Redux store:", maybefriends);
     }, [friends]);
+
+    useEffect(() => {
+        console.log("MaybeFriends updated in Redux store:", maybefriends);
+    }, [maybefriends]);
+
+    useEffect(() => {
+        console.log("group updated:", grouplist);
+    }, [grouplist]);
 
 
     return(
@@ -84,7 +104,7 @@ const List: React.FC = () => {
                 <IonList>
                     {grouplist?
                         grouplist.map((group: GroupList) =>(
-                            <IonItem key={group.name} button routerLink={`/talk/group/${group.groupid}`}>{group.name}</IonItem>
+                            <IonItem key={group.name} button routerLink={`/talk/talks/${group.groupid}`}>{group.name}</IonItem>
                         ))
                     :
                         <IonItem>グループがまだありません</IonItem>
@@ -97,7 +117,12 @@ const List: React.FC = () => {
                 <IonList>
                     {friends?
                         friends.map((friend: Frienddoctype) =>(
-                            <IonItem key={friend.uid} button routerLink={`/talk/dm/${friend.dmid}`}>{friend.displayName}</IonItem>
+                            <IonItem key={friend.uid} button routerLink={`/talk/dm/${friend.dmid}`}>
+                                <IonAvatar style={{ marginRight: "4%"}}>
+                                    <img alt="User Icon is displayed here!" src={friend.photoURL || "https://ionicframework.com/docs/img/demos/avatar.svg"} />
+                                </IonAvatar>
+                                {friend.displayName}
+                            </IonItem>
                         ))
                     :
                         <IonItem>友達がまだいません。友達を追加しよう！</IonItem>
@@ -108,9 +133,14 @@ const List: React.FC = () => {
                     <IonLabel>友達かもしれない</IonLabel>
                 </IonItemDivider>
                 <IonList>
-                    {maybeFriends?
-                        maybeFriends.map((maybefriend: Frienddoctype) =>(
-                            <IonItem key={maybefriend.uid} button routerLink={`/talk/dm/${maybefriend.dmid}`}>{maybefriend.displayName}</IonItem>
+                    {maybefriends?
+                        maybefriends.map((maybefriend: Frienddoctype) =>(
+                            <IonItem key={maybefriend.uid} button routerLink={`/talk/dm/${maybefriend.dmid}`}>
+                                <IonAvatar style={{ marginRight: "4%"}}>
+                                    <img alt="User Icon is displayed here!" src={maybefriend.photoURL || "https://ionicframework.com/docs/img/demos/avatar.svg"} />
+                                </IonAvatar>
+                                {maybefriend.displayName}
+                            </IonItem>
                         ))
                     :
                         <> </>

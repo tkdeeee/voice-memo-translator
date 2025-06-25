@@ -1,16 +1,21 @@
 import { IonContent, IonFooter, IonHeader, IonPage, IonTitle, IonToolbar, IonButton, IonBackButton, IonIcon, IonModal, IonTextarea, IonButtons, IonItem, IonInput, IonList, IonLabel, IonNote, IonAvatar } from '@ionic/react';
-import { micOutline, saveOutline, documentTextOutline, handLeftOutline, text, sendOutline } from 'ionicons/icons';
+import { micOutline, saveOutline, documentTextOutline, handLeftOutline, text, sendOutline, send } from 'ionicons/icons';
 import { useEffect, useState, useRef } from 'react';
 import { auth, app, db } from '../firebase/config';
 import { getAuth } from 'firebase/auth';
-import type { GroupTalk, Dm, TalkContent } from '../firebase/firestore';
+import type { GroupTalk, Dm, TalkContent, Frienddoctype } from '../firebase/firestore';
 import { doc, setDoc, getDoc, onSnapshot } from 'firebase/firestore';
 import { settingsOutline } from 'ionicons/icons';
 import { useParams } from 'react-router-dom';
+import AcceptMaybeFriend from '../components/AcceptMaybeFriend';
 import { GetTalkdoc, GetSpeakerUidDict, DisplayNameandPhotoURL, GetDmdoc } from '../firebase/firestore';
 import { useDispatch, useSelector } from 'react-redux';
 import type { RootState, AppDispatch } from '../reducks/store/store';
 import './Talk.css';
+import AddFriendModal from '../components/AddFriendModal';
+import VoiceRecorderButton from '../components/VoiceRecorderButton';
+import VoiceRecorderModal from '../components/VoiceRecorderModal';
+import { handleRecordingComplete } from './Home';
 
 
 const Talk: React.FC = () => {
@@ -19,83 +24,75 @@ const Talk: React.FC = () => {
     const [user, setUser] = useState(getAuth().currentUser);
     const { talktype, groupid } = useParams<{ talktype: string; groupid: string }>();
     const inputValue = useRef<HTMLIonTextareaElement>(null);
-    const friends = useSelector((state: RootState) => state.friends); // Adjust the type according to your Redux store structure
-    const dispatch = useDispatch();
     const ionContentRef = useRef<HTMLIonContentElement>(null);
+    const friends = useSelector((state: RootState) => state.friends);
+    const maybefriends = useSelector((state: RootState) => state.maybefriends);
+    const [maybeFriend, setMaybeFriend] = useState<Frienddoctype|undefined>(undefined);
+    const [isAddFriendModalOpen, setIsAddFriendModalOpen] = useState<boolean>(false);
+    const [isVoiceRecorderModalOpen, setIsVoiceRecorderModalOpen] = useState<boolean>(false);
+    const [permissionGranted, setPermissionGranted] = useState<boolean>(false);
+    const dispatch = useDispatch<AppDispatch>();
+    const recorderRef = useRef<any>(null);
 
-    // useEffect(() => {
-    //     let unsubscribe: (() => void) | undefined;
+    const acceptFriend = () =>{
+        if(maybeFriend){
+            dispatch({type: "ADD_FRIEND", payload: maybeFriend});
+            dispatch({type: "REMOVE_MAYBEFRIEND", payload: maybeFriend.uid});
+            setIsAddFriendModalOpen(false);
+        }
+    };
 
-    //     if(talktype == 'group'){
-    //         GetTalkdoc(groupid).then((talkData) =>{
-    //             if(talkData){
-    //                 setGroupTalk(talkData);
-    //                 console.log(talkData);
-
-    //                 GetSpeakerUidDict(talkData.groupconfig.member).then((speakerUidDict) => {
-    //                     if(speakerUidDict){
-    //                         setSpeakerUidDict(speakerUidDict);
-    //                         console.log(speakerUidDict);
-    //                     };
-    //                 });
-    //             };
-    //         });
-            
-    //     } else if(talktype == 'dm') {
-    //         GetDmdoc(groupid).then((dmData) => {
-    //             if(dmData){
-    //                 setGroupTalk(dmData);
-    //                 console.log(dmData);
-    //                 GetSpeakerUidDict(dmData.member).then((speakerUidDict) => {
-    //                     if(speakerUidDict){
-    //                         setSpeakerUidDict(speakerUidDict);
-    //                         console.log(speakerUidDict);
-    //                     };
-    //                 });
-    //             };
-    //         });
-    //     }
-    // }, []);
+    const sendMessage = () => {
+        if(inputValue.current && inputValue.current.value) {
+            if(inputValue.current.value.trim() !== "") {
+                console.log("Sending message:", inputValue.current.value);
+                const newTalkContent: TalkContent = {
+                    speakeruid: user?.uid || "",
+                    lettercontent: inputValue.current.value,
+                };
+                // Add the new talk content to the group talk
+                if(grouptalk) {
+                    const updatedTalkHistory = [...grouptalk.talkhistory, newTalkContent];
+                    setGroupTalk({
+                        ...grouptalk,
+                        talkhistory: updatedTalkHistory
+                    });
+                    // Clear the input field
+                    inputValue.current.value = "";
+                    // Here you would typically also update the Firestore document with the new talk content
+                    console.log("New talk content added:", newTalkContent);
+                }
+                const talkDocRef = doc(db, talktype, groupid);
+                grouptalk && setDoc(talkDocRef, {talkhistory: [...grouptalk.talkhistory|| [], newTalkContent]}, {merge: true});
+            }
+        }
+    };
 
     useEffect(() => {
         let unsubscribe: (() => void) | undefined;
 
-        if(talktype == 'group'){
-            const talkDocRef = doc(db, 'talks', groupid);
-            unsubscribe = onSnapshot(talkDocRef, (snapshot) => {
-                const data = snapshot.data();
-                if (data) {
+        const talkDocRef = doc(db, talktype, groupid);
+        unsubscribe = onSnapshot(talkDocRef, (snapshot) => {
+            const data = snapshot.data();
+            if (data) {
+                if ('groupconfig' in data ){
                     setGroupTalk(data as GroupTalk);
-                    // 必要ならspeakerUidDictも再取得
-                    if ('groupconfig' in data) {
-                        GetSpeakerUidDict(data.groupconfig.member).then((speakerUidDict) => {
-                            if(speakerUidDict){
-                                setSpeakerUidDict(speakerUidDict);
-                            }
-                        });
-                    }
-                }
-            });
-            
-        } else if(talktype == 'dm') {
-            const dmDocRef = doc(db, 'dm', groupid);
-            unsubscribe = onSnapshot(dmDocRef, (snapshot) => {
-                const data = snapshot.data();
-                if (data) {
+                    GetSpeakerUidDict(data.groupconfig.member).then((speakerUidDict) => {
+                        if(speakerUidDict){
+                            setSpeakerUidDict(speakerUidDict);
+                        }
+                    });
+                }else if('member' in data ){
                     setGroupTalk(data as Dm);
-                    // 必要ならspeakerUidDictも再取得
-                    if ('member' in data) {
-                        GetSpeakerUidDict(data.member).then((speakerUidDict) => {
-                            if(speakerUidDict){
-                                setSpeakerUidDict(speakerUidDict)
-                            }
-                        });
-                    }
+                    GetSpeakerUidDict(data.member).then((speakerUidDict) => {
+                        if(speakerUidDict){
+                            setSpeakerUidDict(speakerUidDict);
+                            console.log(speakerUidDict);
+                        }
+                    });
                 }
-                console.log(snapshot.metadata.hasPendingWrites);
-            });
-        }
-
+            }
+        });
         return () => {
             if (unsubscribe) unsubscribe();
         };
@@ -106,6 +103,16 @@ const Talk: React.FC = () => {
             ionContentRef.current.scrollToBottom(300);
         }
     }, [grouptalk?.talkhistory]);
+
+    useEffect(() => {
+        if (user && grouptalk){
+            if ("member" in grouptalk){
+                setMaybeFriend(maybefriends.find((maybefriend) => maybefriend.uid == grouptalk.memberdict[user.uid]));
+                console.log(grouptalk?.memberdict[user.uid]);
+                console.log(maybeFriend);
+            }
+        }
+    }, [grouptalk])
 
     
 
@@ -120,10 +127,16 @@ const Talk: React.FC = () => {
                                 <IonBackButton defaultHref='/home'></IonBackButton>
                             </IonButtons>
                             <IonTitle>
-                                {'groupconfig' in grouptalk
+                                {('groupconfig' in grouptalk)
                                     ? grouptalk.groupconfig.name
-                                    : friends.find(friend => friend.uid == (grouptalk.memberdict[user?.uid || ''] as string)?.[0])?.displayName || 'unknown friend'}
+                                    : (user && speakerUidDict[grouptalk.memberdict[user.uid]]?.displayName) || 'unknown friend'}
                             </IonTitle>
+                            {'member' in grouptalk ?
+                                maybeFriend ? <AcceptMaybeFriend setIsModalOpen={setIsAddFriendModalOpen} isModalOpen={isAddFriendModalOpen}/> : <></>
+                            :   
+                                <></>
+                            }
+                            
                         </IonToolbar>
                     </IonHeader>
                     <IonContent class='talkcontainer' ref={ionContentRef} >
@@ -157,46 +170,53 @@ const Talk: React.FC = () => {
                                 )
                             )})}
                         </IonList>
+                        <IonModal 
+                            isOpen={isAddFriendModalOpen || isVoiceRecorderModalOpen} 
+                            initialBreakpoint={0.4} 
+                            breakpoints={[0, 0.4, 1]}
+                            onDidDismiss={() => {
+                                setIsAddFriendModalOpen(false);
+                                setIsVoiceRecorderModalOpen(false);
+                                recorderRef.current?.stopRecording();
+                            }}
+                        >
+                            {maybeFriend &&
+                            <AddFriendModal 
+                                setIsModalOpen={setIsAddFriendModalOpen}
+                                isModalOpen={isAddFriendModalOpen} 
+                                addedFriend={maybeFriend} 
+                                AddFriendProcess={acceptFriend}
+                            />}
+                            <VoiceRecorderModal
+                                onRecordingComplete={handleRecordingComplete}
+                                setPermissionGranted={setPermissionGranted}
+                                permissionGranted={permissionGranted}
+                                setIsVoiceRecorderModalopen={setIsVoiceRecorderModalOpen}
+                                isVoiceRecorderModalopen={isVoiceRecorderModalOpen}
+                                ref={recorderRef}
+                            />
+
+
+                        </IonModal>
                     </IonContent>
                     <IonFooter>
                         <IonToolbar style={{paddingLeft: "5px"}}>
-                            <IonItem>
-                                <IonTextarea ref={inputValue} placeholder='input message!'></IonTextarea>
-                            </IonItem>
-                            <IonButton slot='end' onClick={() => {
-                                if(inputValue.current && inputValue.current.value) {
-                                    if(inputValue.current.value.trim() !== "") {
-                                        console.log("Sending message:", inputValue.current.value);
-                                        const newTalkContent: TalkContent = {
-                                            speakeruid: user?.uid || "",
-                                            lettercontent: inputValue.current.value,
-                                        };
-                                        // Add the new talk content to the group talk
-                                        if(grouptalk) {
-                                            const updatedTalkHistory = [...grouptalk.talkhistory, newTalkContent];
-                                            setGroupTalk({
-                                                ...grouptalk,
-                                                talkhistory: updatedTalkHistory
-                                            });
-                                            // Clear the input field
-                                            inputValue.current.value = "";
-                                            // Here you would typically also update the Firestore document with the new talk content
-                                            console.log("New talk content added:", newTalkContent);
-                                        }
-                                        if(talktype == 'dm') {
-                                            const dmDocRef = doc(db, 'dm', groupid);
-                                            setDoc(dmDocRef, {talkhistory: [...grouptalk.talkhistory|| [], newTalkContent]}, {merge: true});
-                                            
-                                        }else if(talktype == 'group') {
-                                            const talkDocRef = doc(db, 'talks', groupid);
-                                            setDoc(talkDocRef, {talkhistory: [...grouptalk.talkhistory || [], newTalkContent]}, {merge: true});
-
-                                                    
-                                        }
-                                    }
-                                }}}>
-                                <IonIcon slot="icon-only" icon={sendOutline} />
-                            </IonButton>
+                            <div className='footer-items'>
+                                <div className='input-message'>
+                                    <IonTextarea ref={inputValue} placeholder='input message!'></IonTextarea>
+                                </div>
+                                <div className="input-button">
+                                    <VoiceRecorderButton 
+                                        setIsModalopen={setIsVoiceRecorderModalOpen} 
+                                        isModalopen={isVoiceRecorderModalOpen}
+                                        setPermissionGranted={setPermissionGranted}
+                                        permissionGranted={permissionGranted}
+                                    />
+                                    <IonButton onClick={sendMessage}>
+                                        <IonIcon slot="icon-only" icon={sendOutline} />
+                                    </IonButton>
+                                </div>    
+                            </div>
                         </IonToolbar>
                     </IonFooter>
                 </IonPage>

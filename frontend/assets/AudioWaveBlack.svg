@@ -1,0 +1,43 @@
+<svg width="150" height="80" viewBox="0 0 150 80" xmlns="http://www.w3.org/2000/svg">
+  <!-- 背景 -->
+  <rect width="150" height="80" rx="12" fill="#f8f9fa" stroke="#e9ecef" stroke-width="1"/>
+  
+  <!-- 波形表示エリア -->
+  <rect x="20" y="25" width="110" height="30" rx="4" fill="#e3f2fd"/>
+  
+  <!-- 波形バー -->
+  <g fill="#333333">
+    <rect x="25" y="35" width="2" height="10" rx="1"/>
+    <rect x="30" y="32" width="2" height="16" rx="1"/>
+    <rect x="35" y="29" width="2" height="22" rx="1"/>
+    <rect x="40" y="33" width="2" height="14" rx="1"/>
+    <rect x="45" y="31" width="2" height="18" rx="1"/>
+    <rect x="50" y="28" width="2" height="24" rx="1"/>
+    <rect x="55" y="34" width="2" height="12" rx="1"/>
+    <rect x="60" y="30" width="2" height="20" rx="1"/>
+    <rect x="65" y="33" width="2" height="14" rx="1"/>
+    <rect x="70" y="27" width="2" height="26" rx="1"/>
+    <rect x="75" y="32" width="2" height="16" rx="1"/>
+    <rect x="80" y="35" width="2" height="10" rx="1"/>
+    <rect x="85" y="31" width="2" height="18" rx="1"/>
+    <rect x="90" y="29" width="2" height="22" rx="1"/>
+    <rect x="95" y="33" width="2" height="14" rx="1"/>
+    <rect x="100" y="26" width="2" height="28" rx="1"/>
+    <rect x="105" y="34" width="2" height="12" rx="1"/>
+    <rect x="110" y="30" width="2" height="20" rx="1"/>
+    <rect x="115" y="32" width="2" height="16" rx="1"/>
+    <rect x="120" y="35" width="2" height="10" rx="1"/>
+    <rect x="125" y="31" width="2" height="18" rx="1"/>
+  </g>
+  
+  <!-- ホバー効果 -->
+  <style>
+    .waveform-bar {
+      transition: all 0.3s ease;
+    }
+    
+    .waveform-bar:hover {
+      fill: #555555;
+    }
+  </style>
+</svg>

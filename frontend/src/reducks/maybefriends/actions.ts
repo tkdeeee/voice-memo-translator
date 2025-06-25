@@ -1,14 +1,14 @@
 import { add } from "ionicons/icons";
 import { Frienddoctype } from "../../firebase/firestore";
 
-export const ADD_MAYBEFRIEND = "ADD_FRIEND";
-export const REMOVE_MAYBEFRIEND = "REMOVE_FRIEND";
-export const FETCH_MAYBEFRIENDS = "FETCH_FRIENDS";
+export const ADD_MAYBEFRIEND = "ADD_MAYBEFRIEND";
+export const REMOVE_MAYBEFRIEND = "REMOVE_MAYBEFRIEND";
+export const FETCH_MAYBEFRIENDS = "FETCH_MAYBEFRIENDS";
 
-export const addMaybeFriend= (friend: Frienddoctype) => {
+export const addMaybeFriend= (maybefriend: Frienddoctype) => {
     return {
         type: ADD_MAYBEFRIEND,
-        payload: friend,
+        payload: maybefriend,
     };
 };
 
@@ -19,14 +19,14 @@ export const removeMaybeFriend= (uid: string) => {
     };
 };
 
-export const fetchMaybeFriends = (friends: Frienddoctype[]) => {
+export const fetchMaybeFriends = (maybefriends: Frienddoctype[]) => {
     return {   
-        type: "FETCH_MAYBEFRIENDS",
-        payload: friends,
+        type: FETCH_MAYBEFRIENDS,
+        payload: maybefriends,
     };
 };
 
-export type FriendsAction =
+export type MaybeFriendsAction =
     | ReturnType<typeof addMaybeFriend>
     | ReturnType<typeof removeMaybeFriend>
     | ReturnType<typeof fetchMaybeFriends>;

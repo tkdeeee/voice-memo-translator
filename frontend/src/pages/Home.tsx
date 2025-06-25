@@ -5,31 +5,8 @@ import { getAuth } from 'firebase/auth';
 import './Home.css';
 import VoiceRecorderComponent from '../components/VoiceRecorder';
 
-const Home: React.FC = () => {
-  const [isRecording, setIsRecording] = useState(false);
-  const [transcription, setTranscription] = useState("");
-  const [isOpen, setIsOpen] = useState(false);
-  const modal = useRef<HTMLIonModalElement>(null);
-  const input = useRef<HTMLIonTextareaElement>(null);
-  
-  useEffect(() => {
-        const fromLogin = sessionStorage.getItem("fromLogin");
-        if (fromLogin === "true") {
-            sessionStorage.removeItem("fromLogin");
-            
-            setTimeout(() => {
-                window.location.reload();
-            }, 500);
-        }
-    }, []);
 
-
-  const toggleRecording = () => {
-    setIsRecording(!isRecording);
-    // ここに録音開始/停止のロジックを追加
-  };
-
-  const handleRecordingComplete = (recording: any) => {
+export const handleRecordingComplete = (recording: any) => {
     // 録音が完了したときの処理
     console.log('録音完了:', recording);
     const base64Sound = recording.recordDataBase64 // from plugin
@@ -52,9 +29,33 @@ const Home: React.FC = () => {
 
     //ここでfastAPIに音声ファイルを送信&文字お越し後の文字列をget
 
-    setTranscription("こんにちは");
-    setIsOpen(true);
+    // setTranscription("こんにちは");
+    // setIsOpen(true);
 
+  };
+  
+const Home: React.FC = () => {
+  const [isRecording, setIsRecording] = useState(false);
+  const [transcription, setTranscription] = useState("");
+  const [isOpen, setIsOpen] = useState(false);
+  const modal = useRef<HTMLIonModalElement>(null);
+  const input = useRef<HTMLIonTextareaElement>(null);
+  
+  useEffect(() => {
+        const fromLogin = sessionStorage.getItem("fromLogin");
+        if (fromLogin === "true") {
+            sessionStorage.removeItem("fromLogin");
+            
+            setTimeout(() => {
+                window.location.reload();
+            }, 500);
+        }
+    }, []);
+
+
+  const toggleRecording = () => {
+    setIsRecording(!isRecording);
+    // ここに録音開始/停止のロジックを追加
   };
 
   const SendMemoContent = () => {

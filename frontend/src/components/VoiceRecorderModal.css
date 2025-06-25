@@ -1,0 +1,10 @@
+.voice-recorder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+}
+
+.record-button-wrapper{
+    margin-top: 20%;
+}
