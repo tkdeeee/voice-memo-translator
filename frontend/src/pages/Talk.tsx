@@ -3,7 +3,7 @@ import { micOutline, saveOutline, documentTextOutline, handLeftOutline, text, se
 import { useEffect, useState, useRef } from 'react';
 import { auth, app, db } from '../firebase/config';
 import { getAuth } from 'firebase/auth';
-import type { GroupTalk, Dm, TalkContent, Frienddoctype } from '../firebase/firestore';
+import type { GroupTalk, Dm, TalkContent, Frienddoctype, VoiceContent, DmVoice } from '../firebase/firestore';
 import { doc, setDoc, getDoc, onSnapshot } from 'firebase/firestore';
 import { settingsOutline } from 'ionicons/icons';
 import { useParams } from 'react-router-dom';
@@ -15,12 +15,19 @@ import './Talk.css';
 import AddFriendModal from '../components/AddFriendModal';
 import VoiceRecorderButton from '../components/VoiceRecorderButton';
 import VoiceRecorderModal from '../components/VoiceRecorderModal';
-import { handleRecordingComplete } from './Home';
 import VoicePreviewComponent from '../components/VoicePreviewComponent';
+import VoiceViewComponent from '../components/VoiceViewComponent';
+
+export type voiceDataType = {
+    recordDataBase64: string,
+    mimeType: string,
+    msDuration: number,
+};
 
 
 const Talk: React.FC = () => {
-    const [grouptalk, setGroupTalk] = useState<GroupTalk|Dm|null>(null);
+    // const [grouptalk, setGroupTalk] = useState<GroupTalk|Dm|null>(null);
+    const [groupVoicetalk, setGroupVoiceTalk] = useState<DmVoice|null>(null);
     const [speakerUidDict, setSpeakerUidDict] = useState<Record<string, DisplayNameandPhotoURL>>({});
     const [user, setUser] = useState(getAuth().currentUser);
     const { talktype, groupid } = useParams<{ talktype: string; groupid: string }>();
@@ -32,6 +39,7 @@ const Talk: React.FC = () => {
     const [isAddFriendModalOpen, setIsAddFriendModalOpen] = useState<boolean>(false);
     const [isVoiceRecorderModalOpen, setIsVoiceRecorderModalOpen] = useState<boolean>(false);
     const [permissionGranted, setPermissionGranted] = useState<boolean>(false);
+    const [voiceData, setVoiceData] = useState<voiceDataType|null>(null);
     const dispatch = useDispatch<AppDispatch>();
     const recorderRef = useRef<any>(null);
 
@@ -43,30 +51,53 @@ const Talk: React.FC = () => {
         }
     };
 
-    const sendMessage = () => {
-        if(inputValue.current && inputValue.current.value) {
-            if(inputValue.current.value.trim() !== "") {
-                console.log("Sending message:", inputValue.current.value);
-                const newTalkContent: TalkContent = {
+    // const sendMessage = () => {
+    //     if(inputValue.current && inputValue.current.value) {
+    //         if(inputValue.current.value.trim() !== "") {
+    //             console.log("Sending message:", inputValue.current.value);
+    //             const newTalkContent: TalkContent = {
+    //                 speakeruid: user?.uid || "",
+    //                 lettercontent: inputValue.current.value,
+    //             };
+    //             // Add the new talk content to the group talk
+    //             if(grouptalk) {
+    //                 const updatedTalkHistory = [...grouptalk.talkhistory, newTalkContent];
+    //                 setGroupTalk({
+    //                     ...grouptalk,
+    //                     talkhistory: updatedTalkHistory
+    //                 });
+    //                 // Clear the input field
+    //                 inputValue.current.value = "";
+    //                 // Here you would typically also update the Firestore document with the new talk content
+    //                 console.log("New talk content added:", newTalkContent);
+    //             }
+    //             const talkDocRef = doc(db, talktype, groupid);
+    //             grouptalk && setDoc(talkDocRef, {talkhistory: [...grouptalk.talkhistory|| [], newTalkContent]}, {merge: true});
+    //         }
+    //     }
+    // };
+
+    const sendVoice = () => {
+            if(voiceData && voiceData.recordDataBase64 && voiceData.mimeType && voiceData.msDuration > 0) {
+                console.log("Sending message:", voiceData);
+                const newVoiceContent: VoiceContent = {
                     speakeruid: user?.uid || "",
-                    lettercontent: inputValue.current.value,
+                    voiceData: voiceData,
                 };
                 // Add the new talk content to the group talk
-                if(grouptalk) {
-                    const updatedTalkHistory = [...grouptalk.talkhistory, newTalkContent];
-                    setGroupTalk({
-                        ...grouptalk,
-                        talkhistory: updatedTalkHistory
+                if(groupVoicetalk) {
+                    const updatedVoiceHistory = [...groupVoicetalk.talkhistory, newVoiceContent];
+                    setGroupVoiceTalk({
+                        ...groupVoicetalk,
+                        talkhistory: updatedVoiceHistory
                     });
-                    // Clear the input field
-                    inputValue.current.value = "";
                     // Here you would typically also update the Firestore document with the new talk content
-                    console.log("New talk content added:", newTalkContent);
+                    console.log("New talk content added:", newVoiceContent);
                 }
                 const talkDocRef = doc(db, talktype, groupid);
-                grouptalk && setDoc(talkDocRef, {talkhistory: [...grouptalk.talkhistory|| [], newTalkContent]}, {merge: true});
+                groupVoicetalk && setDoc(talkDocRef, {talkhistory: [...groupVoicetalk.talkhistory|| [], newVoiceContent]}, {merge: true});
+                setVoiceData(null);
             }
-        }
     };
 
     useEffect(() => {
@@ -75,16 +106,18 @@ const Talk: React.FC = () => {
         const talkDocRef = doc(db, talktype, groupid);
         unsubscribe = onSnapshot(talkDocRef, (snapshot) => {
             const data = snapshot.data();
+            console.log("Talk data received:", data);
             if (data) {
-                if ('groupconfig' in data ){
-                    setGroupTalk(data as GroupTalk);
-                    GetSpeakerUidDict(data.groupconfig.member).then((speakerUidDict) => {
-                        if(speakerUidDict){
-                            setSpeakerUidDict(speakerUidDict);
-                        }
-                    });
-                }else if('member' in data ){
-                    setGroupTalk(data as Dm);
+                // if ('groupconfig' in data ){
+                //     setGroupTalk(data as GroupTalk);
+                //     GetSpeakerUidDict(data.groupconfig.member).then((speakerUidDict) => {
+                //         if(speakerUidDict){
+                //             setSpeakerUidDict(speakerUidDict);
+                //         }
+                //     });
+                // }else 
+                if ('member' in data) {
+                    setGroupVoiceTalk(data as DmVoice);
                     GetSpeakerUidDict(data.member).then((speakerUidDict) => {
                         if(speakerUidDict){
                             setSpeakerUidDict(speakerUidDict);
@@ -92,27 +125,45 @@ const Talk: React.FC = () => {
                         }
                     });
                 }
-            }
+                // }else if('member' in data ){
+                //     setGroupTalk(data as Dm);
+                //     GetSpeakerUidDict(data.member).then((speakerUidDict) => {
+                //         if(speakerUidDict){
+                //             setSpeakerUidDict(speakerUidDict);
+                //             console.log(speakerUidDict);
+                //         }
+                //     });
+                // }
+            }   
         });
         return () => {
             if (unsubscribe) unsubscribe();
         };
     }, []);
 
-    useEffect(() => {
-        if (ionContentRef.current){
-            ionContentRef.current.scrollToBottom(300);
-        }
-    }, [grouptalk?.talkhistory]);
+    // useEffect(() => {
+    //     if (ionContentRef.current){
+    //         ionContentRef.current.scrollToBottom(300);
+    //     }
+    // }, [grouptalk?.talkhistory]);
+
+    // useEffect(() => {
+    //     if (user && grouptalk){
+    //         if ("member" in grouptalk){
+    //             setMaybeFriend(maybefriends.find((maybefriend) => maybefriend.uid == grouptalk.memberdict[user.uid]));
+    //             console.log("grouptalk.memberdict[user.uid]", grouptalk?.memberdict[user.uid]);
+    //         }
+    //     }
+    // }, [grouptalk])
 
     useEffect(() => {
-        if (user && grouptalk){
-            if ("member" in grouptalk){
-                setMaybeFriend(maybefriends.find((maybefriend) => maybefriend.uid == grouptalk.memberdict[user.uid]));
-                console.log("grouptalk.memberdict[user.uid]", grouptalk?.memberdict[user.uid]);
+        if (user && groupVoicetalk){
+            if ("member" in groupVoicetalk){
+                setMaybeFriend(maybefriends.find((maybefriend) => maybefriend.uid == groupVoicetalk.memberdict[user.uid]));
+                console.log("groupVoicetalk.memberdict[user.uid]", groupVoicetalk?.memberdict[user.uid]);
             }
         }
-    }, [grouptalk])
+    }, [groupVoicetalk])
 
     useEffect(() => {
         console.log(maybefriends);
@@ -124,19 +175,17 @@ const Talk: React.FC = () => {
 
     return(
         <>
-            {grouptalk ? (
+            {groupVoicetalk ?
                 <IonPage>
                     <IonHeader>
                         <IonToolbar class="ion-text-center">
                             <IonButtons slot='start'>
-                                <IonBackButton defaultHref='/home'></IonBackButton>
+                                <IonBackButton defaultHref='/list'></IonBackButton>
                             </IonButtons>
                             <IonTitle>
-                                {('groupconfig' in grouptalk)
-                                    ? grouptalk.groupconfig.name
-                                    : (user && speakerUidDict[grouptalk.memberdict[user.uid]]?.displayName) || 'unknown friend'}
+                                {(user && speakerUidDict[groupVoicetalk.memberdict[user.uid]]?.displayName) || 'unknown friend'}
                             </IonTitle>
-                            {'member' in grouptalk ?
+                            {'member' in groupVoicetalk ?
                                 maybeFriend ? <AcceptMaybeFriend setIsModalOpen={setIsAddFriendModalOpen} isModalOpen={isAddFriendModalOpen}/> : <></>
                             :   
                                 <></>
@@ -146,34 +195,41 @@ const Talk: React.FC = () => {
                     </IonHeader>
                     <IonContent class='talkcontainer' ref={ionContentRef} >
                         <IonList lines='none' style={{display: "flex", flexDirection: "column"}}>
-                            {grouptalk.talkhistory.map((talk, index) => {
-                            return(   
-                                talk.speakeruid == user?.uid ? (
-                                    <IonItem key={index} className='own-message'>
-                                        <div className='message-wrapper own'>
-                                            <IonAvatar className='usericon'>
-                                                <img alt="User Icon is displayed here!" src={speakerUidDict[talk.speakeruid]?.photoURL || "https://ionicframework.com/docs/img/demos/avatar.svg"} />
-                                            </IonAvatar>
-                                            <div className='message-content'>
-                                                <p className='username'>{speakerUidDict[talk.speakeruid]?.displayName || "Unknown User"}</p>
-                                                <h1 className='message-text'>{talk.lettercontent}</h1>
+                            {groupVoicetalk && groupVoicetalk.talkhistory.map((voice, index) => {
+                                return(
+                                    voice.speakeruid == user?.uid ? (
+                                        <IonItem key={index} className='own-message'>
+                                            <div className='message-wrapper own'>
+                                                <IonAvatar className='usericon'>
+                                                    <img alt="User Icon is displayed here!" src={speakerUidDict[voice.speakeruid]?.photoURL || "https://ionicframework.com/docs/img/demos/avatar.svg"} />
+                                                </IonAvatar>
+                                                <div className='message-content'>
+                                                    <p className='username'>{speakerUidDict[voice.speakeruid]?.displayName || "Unknown User"}</p>
+                                                    < VoiceViewComponent
+                                                        voiceData={voice.voiceData}
+                                                        own={true}
+                                                    />
+                                                </div>
                                             </div>
-                                        </div>
-                                    </IonItem>
-                                ):(
-                                    <IonItem key={index} className='other-message'>
-                                        <div className='message-wrapper other'>
-                                            <IonAvatar className='usericon'>
-                                                <img alt="User Icon is displayed here!" src={speakerUidDict[talk.speakeruid]?.photoURL || "https://ionicframework.com/docs/img/demos/avatar.svg"} />
-                                            </IonAvatar>
-                                            <div className='message-content'>
-                                                <p className='username'>{speakerUidDict[talk.speakeruid]?.displayName || "Unknown User"}</p>
-                                                <h1 className='message-text'>{talk.lettercontent}</h1>
+                                        </IonItem>
+                                    ):(
+                                        <IonItem key={index} className='other-message'>
+                                            <div className='message-wrapper other'>
+                                                <IonAvatar className='usericon'>
+                                                    <img alt="User Icon is displayed here!" src={speakerUidDict[voice.speakeruid]?.photoURL || "https://ionicframework.com/docs/img/demos/avatar.svg"} />
+                                                </IonAvatar>
+                                                <div className='message-content'>
+                                                    <p className='username'>{speakerUidDict[voice.speakeruid]?.displayName || "Unknown User"}</p>
+                                                    < VoiceViewComponent
+                                                        voiceData={voice.voiceData}
+                                                        own={false}
+                                                    />
+                                                </div>
                                             </div>
-                                        </div>
-                                    </IonItem>
-                                )
-                            )})}
+                                        </IonItem>
+                                    )
+                                );
+                            })}
                         </IonList>
                         <IonModal 
                             isOpen={isAddFriendModalOpen || isVoiceRecorderModalOpen} 
@@ -193,14 +249,16 @@ const Talk: React.FC = () => {
                                 addedFriend={maybeFriend} 
                                 AddFriendProcess={acceptFriend}
                             />}
+                            {!voiceData &&
                             <VoiceRecorderModal
-                                onRecordingComplete={handleRecordingComplete}
                                 setPermissionGranted={setPermissionGranted}
                                 permissionGranted={permissionGranted}
                                 setIsVoiceRecorderModalopen={setIsVoiceRecorderModalOpen}
                                 isVoiceRecorderModalopen={isVoiceRecorderModalOpen}
                                 ref={recorderRef}
+                                setVoiceData={setVoiceData}
                             />
+                            }
 
 
                         </IonModal>
@@ -217,23 +275,30 @@ const Talk: React.FC = () => {
                                         isModalopen={isVoiceRecorderModalOpen}
                                         setPermissionGranted={setPermissionGranted}
                                         permissionGranted={permissionGranted}
+                                        voiceData={voiceData}
                                     />
                                 
-                                    {/* <IonButton onClick={sendMessage}>
-                                        <IonIcon slot="icon-only" icon={sendOutline} />
-                                    </IonButton> */}
+                                    
                                 </div>
-                                <VoicePreviewComponent
-                                    voiceData={""}
-                                />
-                                
+                                { voiceData && voiceData.recordDataBase64 && voiceData.mimeType && voiceData.msDuration > 0 &&
+                                <>
+                                    <VoicePreviewComponent
+                                        setVoiceData={setVoiceData}
+                                        voiceData={voiceData}
+                                    />
+                                    <IonButton onClick={sendVoice}>
+                                        <IonIcon slot="icon-only" icon={sendOutline} />
+                                    </IonButton>
+                                </>
+                                }
                             </div>
                         </IonToolbar>
                     </IonFooter>
                 </IonPage>
-            ):(
+            :(
                 <></>
-            )}
+            )
+            }
         </>
     );
 };

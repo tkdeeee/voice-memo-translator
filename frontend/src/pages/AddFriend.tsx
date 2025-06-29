@@ -52,7 +52,7 @@ const AddFriend: React.FC = () => {
                 const updatedFriendData: Frienddoctype = {...friendData, dmid: dmid};
                 await UpdateFrienddoc(user.uid, updatedFriendData);
                 setFriendData(updatedFriendData);
-                dispatch({ type: 'ADD_FRIEND', payload:  updatedFriendData });
+                // dispatch({ type: 'ADD_FRIEND', payload:  updatedFriendData });
 
                 const responseAddMaybeFriend = await fetch('https://add-to-maybe-friends-wa6f74sybq-uc.a.run.app', {
                 method: 'POST',
@@ -114,7 +114,7 @@ const AddFriend: React.FC = () => {
             <IonHeader>
                 <IonToolbar class="ion-text-center">
                     <IonButtons slot='start'>
-                        <IonBackButton defaultHref='/home'></IonBackButton>
+                        <IonBackButton defaultHref='/list'></IonBackButton>
                     </IonButtons>
                     <IonTitle>友達を追加</IonTitle>
                     <IonButton slot='end' routerLink='/setting' className="white-button">

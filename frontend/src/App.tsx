@@ -99,14 +99,14 @@ const App: React.FC = () => {
         <IonReactRouter>
           <IonRouterOutlet>
             <Route exact path="/login">
-              {user ? <Redirect to="/home" /> : <Login/>}
+              {user ? <Redirect to="/list" /> : <Login/>}
             </Route>
 
-            <Route exact path="/home">
+            {/* <Route exact path="/home">
               <ProtectRouter user = {user}>
                 <Home />
               </ProtectRouter>
-            </Route>
+            </Route> */}
 
             <Route exact path="/list">
               <ProtectRouter user = {user}>
@@ -133,7 +133,7 @@ const App: React.FC = () => {
             </Route>
 
             <Route exact path="/">
-              {user ? <Redirect to="/home" /> : <Redirect to="/login" />}
+              {user ? <Redirect to="/list" /> : <Redirect to="/login" />}
             </Route>
 
           </IonRouterOutlet>

@@ -10,6 +10,7 @@ import { settingsOutline } from 'ionicons/icons';
 import { useDispatch, useSelector } from 'react-redux';
 import type { RootState, AppDispatch } from '../reducks/store/store';
 import { maybefriendsReducer } from '../reducks/maybefriends/reducers';
+import './Home.css';
 
 const List: React.FC = () => {
     const [grouplist, setGroupList] = useState<GroupList[]|null>(null);
@@ -79,75 +80,78 @@ const List: React.FC = () => {
 
 
     return(
-        <IonPage>
-            <IonHeader>
-                <IonToolbar class="ion-text-center">
-                    <IonButtons slot='start'>
-                        <IonBackButton defaultHref='/home'></IonBackButton>
-                    </IonButtons>
-                    <IonTitle>トーク</IonTitle>
-                    <IonButton slot='end' routerLink='/friend/add' className="white-button">
-                        <IonIcon icon={addOutline}></IonIcon>  
-                    </IonButton>
-                    <IonButton slot='end' routerLink='/setting' className="white-button">
-                        <IonIcon icon={duplicateOutline}></IonIcon>  
-                    </IonButton>
-                    <IonButton slot='end' routerLink='/setting' className="white-button">
-                        <IonIcon icon={settingsOutline}></IonIcon>  
-                    </IonButton>
-                </IonToolbar>
-            </IonHeader>
-            <IonContent>
-                <IonItemDivider>
-                    <IonLabel>グループ</IonLabel>
-                </IonItemDivider>
-                <IonList>
-                    {grouplist?
-                        grouplist.map((group: GroupList) =>(
-                            <IonItem key={group.name} button routerLink={`/talk/talks/${group.groupid}`}>{group.name}</IonItem>
-                        ))
-                    :
-                        <IonItem>グループがまだありません</IonItem>
-                    }
-                </IonList>
+        user&& grouplist ?
+            <IonPage>
+                <IonHeader>
+                    <IonToolbar class="ion-text-center">
+                        {/* <IonButtons slot='start'>
+                            <IonBackButton defaultHref='/home'></IonBackButton>
+                        </IonButtons> */}
+                        <IonTitle>トーク</IonTitle>
+                        <IonButton slot='end' routerLink='/friend/add' className="white-button">
+                            <IonIcon icon={addOutline}></IonIcon>  
+                        </IonButton>
+                        <IonButton slot='end' routerLink='/setting' className="white-button">
+                            <IonIcon icon={duplicateOutline}></IonIcon>  
+                        </IonButton>
+                        <IonButton slot='end' routerLink='/setting' className="white-button">
+                            <IonIcon icon={settingsOutline}></IonIcon>  
+                        </IonButton>
+                    </IonToolbar>
+                </IonHeader>
+                <IonContent>
+                    <IonItemDivider>
+                        <IonLabel>グループ</IonLabel>
+                    </IonItemDivider>
+                    <IonList>
+                        {grouplist?
+                            grouplist.map((group: GroupList) =>(
+                                <IonItem key={group.name} button routerLink={`/talk/talks/${group.groupid}`}>{group.name}</IonItem>
+                            ))
+                        :
+                            <IonItem>グループがまだありません</IonItem>
+                        }
+                    </IonList>
 
-                <IonItemDivider>
-                    <IonLabel>友達</IonLabel>
-                </IonItemDivider>
-                <IonList>
-                    {friends?
-                        friends.map((friend: Frienddoctype) =>(
-                            <IonItem key={friend.uid} button routerLink={`/talk/dm/${friend.dmid}`}>
-                                <IonAvatar style={{ marginRight: "4%"}}>
-                                    <img alt="User Icon is displayed here!" src={friend.photoURL || "https://ionicframework.com/docs/img/demos/avatar.svg"} />
-                                </IonAvatar>
-                                {friend.displayName}
-                            </IonItem>
-                        ))
-                    :
-                        <IonItem>友達がまだいません。友達を追加しよう！</IonItem>
-                    }
-                </IonList>
+                    <IonItemDivider>
+                        <IonLabel>友達</IonLabel>
+                    </IonItemDivider>
+                    <IonList>
+                        {friends?
+                            friends.map((friend: Frienddoctype) =>(
+                                <IonItem key={friend.uid} button routerLink={`/talk/dm/${friend.dmid}`}>
+                                    <IonAvatar style={{ marginRight: "4%"}}>
+                                        <img alt="User Icon is displayed here!" src={friend.photoURL || "https://ionicframework.com/docs/img/demos/avatar.svg"} />
+                                    </IonAvatar>
+                                    {friend.displayName}
+                                </IonItem>
+                            ))
+                        :
+                            <IonItem>友達がまだいません。友達を追加しよう！</IonItem>
+                        }
+                    </IonList>
 
-                <IonItemDivider>
-                    <IonLabel>友達かもしれない</IonLabel>
-                </IonItemDivider>
-                <IonList>
-                    {maybefriends?
-                        maybefriends.map((maybefriend: Frienddoctype) =>(
-                            <IonItem key={maybefriend.uid} button routerLink={`/talk/dm/${maybefriend.dmid}`}>
-                                <IonAvatar style={{ marginRight: "4%"}}>
-                                    <img alt="User Icon is displayed here!" src={maybefriend.photoURL || "https://ionicframework.com/docs/img/demos/avatar.svg"} />
-                                </IonAvatar>
-                                {maybefriend.displayName}
-                            </IonItem>
-                        ))
-                    :
-                        <> </>
-                    }
-                </IonList>
-            </IonContent>
-        </IonPage>
+                    <IonItemDivider>
+                        <IonLabel>友達かもしれない</IonLabel>
+                    </IonItemDivider>
+                    <IonList>
+                        {maybefriends?
+                            maybefriends.map((maybefriend: Frienddoctype) =>(
+                                <IonItem key={maybefriend.uid} button routerLink={`/talk/dm/${maybefriend.dmid}`}>
+                                    <IonAvatar style={{ marginRight: "4%"}}>
+                                        <img alt="User Icon is displayed here!" src={maybefriend.photoURL || "https://ionicframework.com/docs/img/demos/avatar.svg"} />
+                                    </IonAvatar>
+                                    {maybefriend.displayName}
+                                </IonItem>
+                            ))
+                        :
+                            <> </>
+                        }
+                    </IonList>
+                </IonContent>
+            </IonPage>
+        :
+            <h1>aaaaaaaaaa</h1>
     );
 };
 

@@ -34,8 +34,21 @@ type TalkContent = {
   lettercontent: string
 }
 
+type VoiceContent = {
+  speakeruid: string,
+  voiceData: {
+    recordDataBase64: string,
+    mimeType: string,
+    msDuration: number,
+  }
+}
+
 type BaseTalk = {
   talkhistory: TalkContent[];
+}
+
+type BaseVoiceTalk = {
+  talkhistory: VoiceContent[];
 }
 
 type GroupTalk = BaseTalk & {
@@ -45,6 +58,12 @@ type GroupTalk = BaseTalk & {
 type Dm = BaseTalk & {
   member: string[],
   memberdict: {[uid: string]: string }, 
+}
+
+type DmVoice = BaseVoiceTalk & {
+  member: string[],
+  memberdict: {[uid: string]: string },
+  voice: boolean
 }
 
 type DisplayNameandPhotoURL = {
@@ -291,5 +310,5 @@ async function GetSpeakerUidDict(groupmember:string[]): Promise<UidDisplayNameDi
   return speakerUidDict;
 }
 
-export { CreateUserdoc, GetUserSelfdoc, GetAnotherUserdoc, GetTalkdoc, GetSpeakerUidDict, GetFrienddoc, CreateDMdoc, UpdateFrienddoc, UpdateMaybeFrienddoc, GetDmdoc };
-export type { UidDisplayNameDict, Userdoctype, TalkContent, GroupTalk, Dm, GroupList, DisplayNameandPhotoURL, Frienddoctype, Groupconfig };
+export { CreateUserdoc, GetUserSelfdoc, GetAnotherUserdoc, GetTalkdoc, GetSpeakerUidDict, GetFrienddoc, CreateDMdoc, UpdateFrienddoc, UpdateMaybeFrienddoc, GetDmdoc, };
+export type { UidDisplayNameDict, Userdoctype, TalkContent, VoiceContent, GroupTalk, Dm, DmVoice, GroupList, DisplayNameandPhotoURL, Frienddoctype, Groupconfig };

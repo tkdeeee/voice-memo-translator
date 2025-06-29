@@ -4,11 +4,12 @@ import { micOutline, stopCircleOutline } from 'ionicons/icons';
 import { VoiceRecorder } from 'capacitor-voice-recorder';
 // import './VoiceRecorder.css';
 
-interface VoiceRecorderProps {
-  onRecordingComplete: (recording: any) => void;
-}
+// interface VoiceRecorderProps {
+//   onRecordingComplete: (recording: any) => void;
+// }
 
-const VoiceRecorderComponent: React.FC<VoiceRecorderProps> = ({ onRecordingComplete }) => {
+// const VoiceRecorderComponent: React.FC<VoiceRecorderProps> = ({ onRecordingComplete }) => {
+const VoiceRecorderComponent: React.FC = ({}) => {
   const [isRecording, setIsRecording] = useState(false);
   const [permissionGranted, setPermissionGranted] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
@@ -20,6 +21,34 @@ const VoiceRecorderComponent: React.FC<VoiceRecorderProps> = ({ onRecordingCompl
       if (timerId) clearInterval(timerId);
     };
   }, []);
+
+  const handleRecordingComplete = (recording: any) => {
+    // 録音が完了したときの処理
+    console.log('録音完了:', recording);
+    const base64Sound = recording.recordDataBase64 // from plugin
+    const mimeType = recording.mimeType  // from plugin
+    const audioRef = new Audio(`data:${mimeType};base64,${base64Sound}`)
+    audioRef.oncanplaythrough = () => audioRef.play()
+    audioRef.load()
+    // const base64Data = base64Sound.replace(/^data:.+;base64,/, '');
+    // const byteCharacters = atob(base64Data);
+    // const byteNumbers = new Array(byteCharacters.length);
+    
+    // for (let i = 0; i < byteCharacters.length; i++){
+    //   byteNumbers[i] = byteCharacters.charCodeAt(i);
+    // }
+
+    // const byteArray = new Uint8Array(byteNumbers);
+    // const blob = new Blob([byteArray], {type: "audio/wav"});
+    // setUrl(URL.createObjectURL(blob));
+    // setIsRecording(true);
+
+    //ここでfastAPIに音声ファイルを送信&文字お越し後の文字列をget
+
+    // setTranscription("こんにちは");
+    // setIsOpen(true);
+
+  };
 
   const checkPermission = async () => {
     try {
@@ -81,8 +110,8 @@ const VoiceRecorderComponent: React.FC<VoiceRecorderProps> = ({ onRecordingCompl
       setIsRecording(false);
       setRecordingTime(0);
       
-      if (result.value && onRecordingComplete) {
-        onRecordingComplete(result.value);
+      if (result.value) {
+        handleRecordingComplete(result.value);
       }
       
     } catch (error) {

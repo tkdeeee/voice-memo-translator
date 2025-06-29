@@ -6,33 +6,33 @@ import './Home.css';
 import VoiceRecorderComponent from '../components/VoiceRecorder';
 
 
-export const handleRecordingComplete = (recording: any) => {
-    // 録音が完了したときの処理
-    console.log('録音完了:', recording);
-    const base64Sound = recording.recordDataBase64 // from plugin
-    const mimeType = recording.mimeType  // from plugin
-    const audioRef = new Audio(`data:${mimeType};base64,${base64Sound}`)
-    audioRef.oncanplaythrough = () => audioRef.play()
-    audioRef.load()
-    // const base64Data = base64Sound.replace(/^data:.+;base64,/, '');
-    // const byteCharacters = atob(base64Data);
-    // const byteNumbers = new Array(byteCharacters.length);
+// export const handleRecordingComplete = (recording: any) => {
+//     // 録音が完了したときの処理
+//     console.log('録音完了:', recording);
+//     const base64Sound = recording.recordDataBase64 // from plugin
+//     const mimeType = recording.mimeType  // from plugin
+//     const audioRef = new Audio(`data:${mimeType};base64,${base64Sound}`)
+//     audioRef.oncanplaythrough = () => audioRef.play()
+//     audioRef.load()
+//     // const base64Data = base64Sound.replace(/^data:.+;base64,/, '');
+//     // const byteCharacters = atob(base64Data);
+//     // const byteNumbers = new Array(byteCharacters.length);
     
-    // for (let i = 0; i < byteCharacters.length; i++){
-    //   byteNumbers[i] = byteCharacters.charCodeAt(i);
-    // }
+//     // for (let i = 0; i < byteCharacters.length; i++){
+//     //   byteNumbers[i] = byteCharacters.charCodeAt(i);
+//     // }
 
-    // const byteArray = new Uint8Array(byteNumbers);
-    // const blob = new Blob([byteArray], {type: "audio/wav"});
-    // setUrl(URL.createObjectURL(blob));
-    // setIsRecording(true);
+//     // const byteArray = new Uint8Array(byteNumbers);
+//     // const blob = new Blob([byteArray], {type: "audio/wav"});
+//     // setUrl(URL.createObjectURL(blob));
+//     // setIsRecording(true);
 
-    //ここでfastAPIに音声ファイルを送信&文字お越し後の文字列をget
+//     //ここでfastAPIに音声ファイルを送信&文字お越し後の文字列をget
 
-    // setTranscription("こんにちは");
-    // setIsOpen(true);
+//     // setTranscription("こんにちは");
+//     // setIsOpen(true);
 
-  };
+//   };
   
 const Home: React.FC = () => {
   const [isRecording, setIsRecording] = useState(false);
@@ -94,9 +94,7 @@ const Home: React.FC = () => {
             >
               <IonIcon slot="icon-only" icon={micOutline} />
             </IonButton> */}
-            <VoiceRecorderComponent
-              onRecordingComplete={handleRecordingComplete}
-            />
+            <VoiceRecorderComponent/>
             <p>{isRecording ? '録音中...' : '録音'}</p>
           </div>
           

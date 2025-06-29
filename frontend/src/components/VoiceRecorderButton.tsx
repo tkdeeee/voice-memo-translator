@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { IonButton, IonIcon } from '@ionic/react';
 import { micOutline, stopCircleOutline, micOffCircleOutline } from 'ionicons/icons';
 import { VoiceRecorder } from 'capacitor-voice-recorder';
+import type { voiceDataType } from '../pages/Talk';
 // import './VoiceRecorder.css';
 
 interface VoiceRecorderButtonProps {
@@ -9,9 +10,11 @@ interface VoiceRecorderButtonProps {
   isModalopen: boolean,
   setPermissionGranted: (open: boolean) => void,
   permissionGranted: boolean,
+  voiceData: voiceDataType | null,
 }
 
-const VoiceRecorderButton: React.FC<VoiceRecorderButtonProps> = ({ setIsModalopen, isModalopen, setPermissionGranted, permissionGranted }) => {
+const VoiceRecorderButton: React.FC<VoiceRecorderButtonProps> = ({ setIsModalopen, isModalopen, setPermissionGranted, permissionGranted, voiceData }) => {
+// const VoiceRecorderButton: React.FC<VoiceRecorderButtonProps> = ({ setIsModalopen, isModalopen, setPermissionGranted, permissionGranted}) => {
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
   const [timerId, setTimerId] = useState<number | null>(null);
@@ -58,7 +61,7 @@ const VoiceRecorderButton: React.FC<VoiceRecorderButtonProps> = ({ setIsModalope
           <IonIcon icon={micOffCircleOutline}  slot="icon-only"></IonIcon>
         </IonButton>
       ) : (
-        <IonButton onClick={() => setIsModalopen(true)}>
+        <IonButton onClick={() => setIsModalopen(true)} disabled={voiceData !== null}>
             <IonIcon icon={micOutline}  slot="icon-only"></IonIcon>
         </IonButton>
       )}
