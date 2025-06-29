@@ -11,9 +11,9 @@ export const handleRecordingComplete = (recording: any) => {
     console.log('録音完了:', recording);
     const base64Sound = recording.recordDataBase64 // from plugin
     const mimeType = recording.mimeType  // from plugin
-    // const audioRef = new Audio(`data:${mimeType};base64,${base64Sound}`)
-    // audioRef.oncanplaythrough = () => audioRef.play()
-    // audioRef.load()
+    const audioRef = new Audio(`data:${mimeType};base64,${base64Sound}`)
+    audioRef.oncanplaythrough = () => audioRef.play()
+    audioRef.load()
     // const base64Data = base64Sound.replace(/^data:.+;base64,/, '');
     // const byteCharacters = atob(base64Data);
     // const byteNumbers = new Array(byteCharacters.length);

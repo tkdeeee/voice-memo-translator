@@ -16,6 +16,7 @@ import AddFriendModal from '../components/AddFriendModal';
 import VoiceRecorderButton from '../components/VoiceRecorderButton';
 import VoiceRecorderModal from '../components/VoiceRecorderModal';
 import { handleRecordingComplete } from './Home';
+import VoicePreviewComponent from '../components/VoicePreviewComponent';
 
 
 const Talk: React.FC = () => {
@@ -108,11 +109,15 @@ const Talk: React.FC = () => {
         if (user && grouptalk){
             if ("member" in grouptalk){
                 setMaybeFriend(maybefriends.find((maybefriend) => maybefriend.uid == grouptalk.memberdict[user.uid]));
-                console.log(grouptalk?.memberdict[user.uid]);
-                console.log(maybeFriend);
+                console.log("grouptalk.memberdict[user.uid]", grouptalk?.memberdict[user.uid]);
             }
         }
     }, [grouptalk])
+
+    useEffect(() => {
+        console.log(maybefriends);
+        console.log("maybefriend", maybeFriend);
+    }, [maybeFriend])
 
     
 
@@ -179,6 +184,7 @@ const Talk: React.FC = () => {
                                 setIsVoiceRecorderModalOpen(false);
                                 recorderRef.current?.stopRecording();
                             }}
+                            style={{width: "430px", margin: "0 auto"}}
                         >
                             {maybeFriend &&
                             <AddFriendModal 
@@ -202,9 +208,9 @@ const Talk: React.FC = () => {
                     <IonFooter>
                         <IonToolbar style={{paddingLeft: "5px"}}>
                             <div className='footer-items'>
-                                <div className='input-message'>
+                                {/* <div className='input-message'>
                                     <IonTextarea ref={inputValue} placeholder='input message!'></IonTextarea>
-                                </div>
+                                </div> */}
                                 <div className="input-button">
                                     <VoiceRecorderButton 
                                         setIsModalopen={setIsVoiceRecorderModalOpen} 
@@ -212,10 +218,15 @@ const Talk: React.FC = () => {
                                         setPermissionGranted={setPermissionGranted}
                                         permissionGranted={permissionGranted}
                                     />
-                                    <IonButton onClick={sendMessage}>
+                                
+                                    {/* <IonButton onClick={sendMessage}>
                                         <IonIcon slot="icon-only" icon={sendOutline} />
-                                    </IonButton>
-                                </div>    
+                                    </IonButton> */}
+                                </div>
+                                <VoicePreviewComponent
+                                    voiceData={""}
+                                />
+                                
                             </div>
                         </IonToolbar>
                     </IonFooter>

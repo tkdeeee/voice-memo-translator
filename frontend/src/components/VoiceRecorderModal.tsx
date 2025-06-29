@@ -88,6 +88,8 @@ const VoiceRecorderModal = forwardRef((props: VoiceRecorderModalProps, ref) => {
       if (result.value && onRecordingComplete) {
         onRecordingComplete(result.value);
       }
+
+      
       
     } catch (error) {
       console.error('録音停止エラー:', error);

@@ -8,3 +8,22 @@
   box-shadow: 0 0 16px rgba(0,0,0,0.15);
   width: 100%;
 }
+
+ion-modal .ion-modal-wrapper,
+ion-modal .modal-wrapper,
+ion-modal .inner-scroll {
+  max-width: 430px !important;
+  width: 100% !important;
+  margin: 0 auto !important;
+  --width: 430px !important;
+  --height: 90vh !important;
+  border-radius: 12px;
+}
+
+.modal-mobile-frame {
+  --width: 430px !important;
+  width: 100%;
+  margin: 0 auto;
+  border-radius: 12px;
+  background: #fff;
+}

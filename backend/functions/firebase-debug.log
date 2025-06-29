@@ -1,0 +1,67 @@
+[debug] [2025-06-25T17:58:55.469Z] ----------------------------------------------------------------------
+[debug] [2025-06-25T17:58:55.471Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\17320\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js init functions
+[debug] [2025-06-25T17:58:55.471Z] CLI Version:   14.8.0
+[debug] [2025-06-25T17:58:55.471Z] Platform:      win32
+[debug] [2025-06-25T17:58:55.471Z] Node Version:  v22.14.0
+[debug] [2025-06-25T17:58:55.471Z] Time:          Thu Jun 26 2025 02:58:55 GMT+0900 (日本標準時)
+[debug] [2025-06-25T17:58:55.472Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2025-06-25T17:58:55.476Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-06-25T17:58:55.476Z] > authorizing via signed-in user (22360679tkd@gmail.com)
+[info] 
+     ######## #### ########  ######## ########     ###     ######  ########
+     ##        ##  ##     ## ##       ##     ##  ##   ##  ##       ##
+     ######    ##  ########  ######   ########  #########  ######  ######
+     ##        ##  ##    ##  ##       ##     ## ##     ##       ## ##
+     ##       #### ##     ## ######## ########  ##     ##  ######  ########
+
+You're about to initialize a Firebase project in this directory:
+
+  C:\Users\17320\voice-memo-translator\backend\functions
+
+[info] 
+=== Project Setup
+[info] 
+[info] First, let's associate this project directory with a Firebase project.
+[info] You can create multiple project aliases by running firebase use --add, 
+[info] but for now we'll just set up a default project.
+[info] 
+[debug] [2025-06-25T17:59:00.530Z] Checked if tokens are valid: true, expires at: 1750877487499
+[debug] [2025-06-25T17:59:00.531Z] Checked if tokens are valid: true, expires at: 1750877487499
+[debug] [2025-06-25T17:59:00.531Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects pageSize=100
+[debug] [2025-06-25T17:59:01.286Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects 200
+[debug] [2025-06-25T17:59:01.286Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects [omitted]
+[info] i  Using project voice-to-shareablememo-app (Voice-to-ShareableMemo-app) 
+[info] 
+=== Functions Setup
+[debug] [2025-06-25T17:59:02.157Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-06-25T17:59:02.157Z] > authorizing via signed-in user (22360679tkd@gmail.com)
+[debug] [2025-06-25T17:59:02.157Z] [iam] checking project voice-to-shareablememo-app for permissions ["firebase.projects.get"]
+[debug] [2025-06-25T17:59:02.158Z] Checked if tokens are valid: true, expires at: 1750877487499
+[debug] [2025-06-25T17:59:02.158Z] Checked if tokens are valid: true, expires at: 1750877487499
+[debug] [2025-06-25T17:59:02.158Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/voice-to-shareablememo-app:testIamPermissions [none]
+[debug] [2025-06-25T17:59:02.158Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/voice-to-shareablememo-app:testIamPermissions x-goog-quota-user=projects/voice-to-shareablememo-app
+[debug] [2025-06-25T17:59:02.158Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/voice-to-shareablememo-app:testIamPermissions {"permissions":["firebase.projects.get"]}
+[debug] [2025-06-25T17:59:02.961Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/voice-to-shareablememo-app:testIamPermissions 200
+[debug] [2025-06-25T17:59:02.961Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/voice-to-shareablememo-app:testIamPermissions {"permissions":["firebase.projects.get"]}
+[info] Let's create a new codebase for your functions.
+[info] A directory corresponding to the codebase will be created in your project
+[info] with sample code pre-configured.
+
+[info] See https://firebase.google.com/docs/functions/organize-functions for
+[info] more information on organizing your functions using codebases.
+
+[info] Functions can be deployed with firebase deploy.
+
+[info] +  Wrote functions/requirements.txt 
+[info] +  Wrote functions/.gitignore 
+[info] +  Wrote functions/main.py 
+[debug] [2025-06-25T17:59:13.691Z] Running command with virtualenv: command="C:\Users\17320\voice-memo-translator\backend\functions\functions\venv\Scripts\activate.bat", args=["","&&","pip3","install","--upgrade","pip"]
+[debug] [2025-06-25T17:59:15.846Z] Error: spawn "C:\Users\17320\voice-memo-translator\backend\functions\functions\venv\Scripts\activate.bat" ENOENT
+    at notFoundError (C:\Users\17320\AppData\Roaming\npm\node_modules\firebase-tools\node_modules\cross-spawn\lib\enoent.js:6:26)
+    at verifyENOENT (C:\Users\17320\AppData\Roaming\npm\node_modules\firebase-tools\node_modules\cross-spawn\lib\enoent.js:40:16)
+    at cp.emit (C:\Users\17320\AppData\Roaming\npm\node_modules\firebase-tools\node_modules\cross-spawn\lib\enoent.js:27:25)
+    at ChildProcess._handle.onexit (node:internal/child_process:293:12)
+    at Process.callbackTrampoline (node:internal/async_hooks:130:17)
+[error] 
+[error] Error: An unexpected error has occurred.

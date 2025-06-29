@@ -1,0 +1,25 @@
+.voice-preview-component{
+    width: 50%;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    /* justify-content: flex-start; */
+    border-radius: 8px;
+}
+
+
+
+.play-button-icon{
+    font-size: 36px;
+}
+
+.voice-wave-container{
+    position: relative;
+    width: 100%;
+}
+
+.delete-button{
+    position: absolute;
+    right: 0;
+    top:0;
+}

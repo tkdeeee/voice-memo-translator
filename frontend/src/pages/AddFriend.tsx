@@ -27,25 +27,58 @@ const AddFriend: React.FC = () => {
     };
 
     async function AddFriend() {
-        
         if(user?.uid && friendData){
-            const dmid = await CreateDMdoc(user.uid, friendData);
-            console.log("DM created with ID:", dmid);
-            friendData.dmid = dmid; // Add dmid to friendData
+            try {
+                const responseCreateDM = await fetch(`https://us-central1-voice-to-shareablememo-app.cloudfunctions.net/create_dmdoc`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        uid: user.uid,
+                        frienduid: friendData.uid
+                    })
+                });
+                if (!responseCreateDM.ok) {
+                    throw new Error(`HTTP error! status: ${responseCreateDM.json()}`);
+                }else {
+                    console.log("DM creation request sent successfully.");
+                }
+                const resultCreateDm = await responseCreateDM.json();
+                const dmid = resultCreateDm.dmId; // Extract dmid from the response
+                console.log("DM creation response:", resultCreateDm);
+                console.log("DM created with ID:", dmid);
+                
+                const updatedFriendData: Frienddoctype = {...friendData, dmid: dmid};
+                await UpdateFrienddoc(user.uid, updatedFriendData);
+                setFriendData(updatedFriendData);
+                dispatch({ type: 'ADD_FRIEND', payload:  updatedFriendData });
 
-            await UpdateFrienddoc(user.uid, friendData);
-            console.log("Friend added successfully:", friendData);
-            if (user.displayName && user.photoURL) {
-                const userData = {
+                const responseAddMaybeFriend = await fetch('https://add-to-maybe-friends-wa6f74sybq-uc.a.run.app', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    uid: user.uid,
                     displayName: user.displayName,
                     photoURL: user.photoURL,
-                    uid: user.uid,
-                    dmid: dmid, // Add dmid to userData
-                };
-                await UpdateMaybeFrienddoc(friendData.uid, userData);
-                console.log("Maybe friend updated successfully:", userData);
+                    dmid: dmid,
+                    targetUid: friendData.uid
+                })
+                });
+
+                const result = await responseAddMaybeFriend.json();
+                
+                if (responseAddMaybeFriend.ok) {
+                console.log('成功:', result);
+                } else {
+                console.error('エラー:', result);
+                }
+            } catch (error) {
+                console.error('ネットワークエラー:', error);
             }
-            dispatch({ type: 'ADD_FRIEND', payload: friendData });
+            
         }
         setIsModalOpen(false);
     };
@@ -156,6 +189,8 @@ const AddFriend: React.FC = () => {
                             isOpen={isModalOpen} 
                             initialBreakpoint={0.4} 
                             breakpoints={[0, 0.4, 1]}
+                            onDidDismiss={() => setIsModalOpen(false)}
+                            style={{width: "430px", margin: "0 auto"}}
                 >
                     {friendData && <AddFriendModal setIsModalOpen={setIsModalOpen} isModalOpen={isModalOpen} addedFriend={friendData} AddFriendProcess={AddFriend}/>}
                 </IonModal>
