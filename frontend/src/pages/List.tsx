@@ -5,11 +5,10 @@ import { auth, app, db } from '../firebase/config';
 import VoiceRecorderComponent from '../components/VoiceRecorder';
 import { Frienddoctype, Userdoctype, GroupList, CreateUserdoc } from '../firebase/firestore';
 import { getAuth } from 'firebase/auth';
-import { doc, setDoc, getDoc, onSnapshot } from 'firebase/firestore';
+import { doc, setDoc, getDoc, onSnapshot, Unsubscribe } from 'firebase/firestore';
 import { settingsOutline } from 'ionicons/icons';
 import { useDispatch, useSelector } from 'react-redux';
 import type { RootState, AppDispatch } from '../reducks/store/store';
-import { maybefriendsReducer } from '../reducks/maybefriends/reducers';
 import './Home.css';
 
 const List: React.FC = () => {
@@ -18,17 +17,68 @@ const List: React.FC = () => {
     const dispatch = useDispatch<AppDispatch>();
     const friends = useSelector((state: RootState) => state.friends);
     const maybefriends = useSelector((state: RootState) => state.maybefriends);
+    // const userBasicInfo = useSelector((state: RootState) => state.userBasicInfo);
+
+    const friendsRef = useRef(friends);
+    friendsRef.current = friends;
+
+    const maybefriendsRef = useRef(maybefriends);
+    maybefriendsRef.current = maybefriends;
 
     useEffect(() => {
-        let unsubscribe: (() => void) | undefined;
+        let unsubscribe: Unsubscribe;
         if(user?.uid){
             const userDocRef = doc(db, "users", user.uid);
             unsubscribe = onSnapshot(userDocRef, (snapshot) => {
                 const userdata = snapshot.data() as Userdoctype;
                 if(userdata){
+                    console.log(friendsRef.current);
+                    userdata.friends.map((friend: Frienddoctype) => {
+                        const friendDocRef = doc(db, "public_profiles", friend.uid);
+                        getDoc(friendDocRef).then((friendSnapshot) => {
+                            if (friendSnapshot.exists()) {
+                                const friendData = {...friendSnapshot.data(), dmid: friend.dmid} as Frienddoctype;
+                                if (friendsRef.current.find(f => f.uid == friendData.uid)) {
+                                    console.warn(`Friend with uid ${friendData.uid} already exists.`);
+                                }else {
+                                    dispatch({ type: 'ADD_FRIEND', payload: { ...friend, ...friendData } });
+                                    console.log("ADDED friend !");
+                                }   
+                                
+                                console.log("Friend data:", friendData);
+                            } else {
+                                console.log("No such document!");
+                            }
+                        }).catch((error) => {
+                            console.error("Error getting document:", error);
+                        });
+                    });
+                    userdata.maybefriends.map((maybefriend: Frienddoctype) => {
+                        const maybefriendDocRef = doc(db, "public_profiles", maybefriend.uid);
+                        getDoc(maybefriendDocRef).then((maybefriendSnapshot) => {
+                            if (maybefriendSnapshot.exists()) {
+                                const maybefriendData = {...maybefriendSnapshot.data(), dmid: maybefriend.dmid} as Frienddoctype;
+                                if (maybefriendsRef.current.find(f => f.uid == maybefriendData.uid)) {
+                                    console.warn(`MaybeFriend with uid ${maybefriendData.uid} already exists.`);
+                                }else {
+                                    dispatch({ type: 'ADD_MAYBEFRIEND', payload: { ...maybefriend, ...maybefriendData } });
+                                    console.log("ADDED MaybeFriend !");
+                                }   
+                                
+                                console.log("MaybeFriend data:", maybefriendData);
+                            } else {
+                                console.log("No such document!");
+                            }
+                        }).catch((error) => {
+                            console.error("Error getting document:", error);
+                        });
+                    });
                     setGroupList(userdata.group);
-                    dispatch({ type: 'FETCH_FRIENDS', payload: userdata.friends });
-                    dispatch({ type: 'FETCH_MAYBEFRIENDS', payload: userdata.maybefriends });
+                    // dispatch({ type: 'FETCH_FRIENDS', payload: userdata.friends });
+                    // dispatch({ type: 'FETCH_MAYBEFRIENDS', payload: userdata.maybefriends });
+                    // const { uid, displayName, photoURL, email } = userdata;
+                    // console.log(uid, displayName, photoURL, email); 
+                    // dispatch({ type: 'FETCH_SELF_PROFILE', payload: {uid, displayName, photoURL, email}});
                 }
             })
             // GetUserdoc(user.uid).then((userData) =>{
@@ -61,18 +111,23 @@ const List: React.FC = () => {
             //     };
             // });
         };
-
+        return () => {
+            unsubscribe();
+        };
         
     }, [user]);
 
     useEffect(() => {
         console.log("Friends updated in Redux store:", friends);
-        console.log("MaybeFriends updated in Redux store:", maybefriends);
     }, [friends]);
 
     useEffect(() => {
         console.log("MaybeFriends updated in Redux store:", maybefriends);
     }, [maybefriends]);
+    
+    // useEffect(() => {
+    //     console.log("UserBasicInfo updated in Redux store:", userBasicInfo);
+    // }, [userBasicInfo]);
 
     useEffect(() => {
         console.log("group updated:", grouplist);

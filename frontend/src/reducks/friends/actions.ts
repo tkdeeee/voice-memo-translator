@@ -20,7 +20,7 @@ export const removeFriend = (uid: string) => {
 
 export const fetchFriends = (friends: Frienddoctype[]) => {
     return {   
-        type: "FETCH_FRIENDS",
+        type: FETCH_FRIENDS,
         payload: friends,
     };
 };

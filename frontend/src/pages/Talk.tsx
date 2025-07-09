@@ -7,16 +7,18 @@ import type { GroupTalk, Dm, TalkContent, Frienddoctype, VoiceContent, DmVoice }
 import { doc, setDoc, getDoc, onSnapshot } from 'firebase/firestore';
 import { settingsOutline } from 'ionicons/icons';
 import { useParams } from 'react-router-dom';
-import AcceptMaybeFriend from '../components/AcceptMaybeFriend';
+import AcceptMaybeFriend from '../components/FriendHandleButton';
 import { GetTalkdoc, GetSpeakerUidDict, DisplayNameandPhotoURL, GetDmdoc } from '../firebase/firestore';
 import { useDispatch, useSelector } from 'react-redux';
 import type { RootState, AppDispatch } from '../reducks/store/store';
 import './Talk.css';
-import AddFriendModal from '../components/AddFriendModal';
+import FriendHandleModal from '../components/FriendHandleModal';
 import VoiceRecorderButton from '../components/VoiceRecorderButton';
 import VoiceRecorderModal from '../components/VoiceRecorderModal';
 import VoicePreviewComponent from '../components/VoicePreviewComponent';
 import VoiceViewComponent from '../components/VoiceViewComponent';
+import FriendHandleButton from '../components/FriendHandleButton';
+import { getStorage, ref, uploadBytes } from 'firebase/storage';
 
 export type voiceDataType = {
     recordDataBase64: string,
@@ -36,7 +38,9 @@ const Talk: React.FC = () => {
     const friends = useSelector((state: RootState) => state.friends);
     const maybefriends = useSelector((state: RootState) => state.maybefriends);
     const [maybeFriend, setMaybeFriend] = useState<Frienddoctype|undefined>(undefined);
+    const [Friend, setFriend] = useState<Frienddoctype|undefined>(undefined);
     const [isAddFriendModalOpen, setIsAddFriendModalOpen] = useState<boolean>(false);
+    const [isRemoveFriendModalOpen, setIsRemoveFriendModalOpen] = useState<boolean>(false);
     const [isVoiceRecorderModalOpen, setIsVoiceRecorderModalOpen] = useState<boolean>(false);
     const [permissionGranted, setPermissionGranted] = useState<boolean>(false);
     const [voiceData, setVoiceData] = useState<voiceDataType|null>(null);
@@ -49,6 +53,17 @@ const Talk: React.FC = () => {
             dispatch({type: "REMOVE_MAYBEFRIEND", payload: maybeFriend.uid});
             setIsAddFriendModalOpen(false);
         }
+    };
+
+    const removeFriend = () => {
+        if(maybeFriend) {
+            dispatch({type: "REMOVE_FRIEND", payload: maybeFriend.uid});
+            dispatch({type: "ADD_BLOCKFRIEND", payload: maybeFriend});
+        }else if(Friend) {
+            dispatch({type: "REMOVE_FRIEND", payload: Friend.uid});
+            dispatch({type: "ADD_BLOCKFRIEND", payload: Friend});
+        }
+        setIsRemoveFriendModalOpen(false);
     };
 
     // const sendMessage = () => {
@@ -97,6 +112,35 @@ const Talk: React.FC = () => {
                 const talkDocRef = doc(db, talktype, groupid);
                 groupVoicetalk && setDoc(talkDocRef, {talkhistory: [...groupVoicetalk.talkhistory|| [], newVoiceContent]}, {merge: true});
                 setVoiceData(null);
+
+                const base64Sound = voiceData.recordDataBase64 // from plugin
+                const mimeType = voiceData.mimeType  // from plugin
+
+                const binaryString = atob(base64Sound);
+                const bytes = new Uint8Array(binaryString.length);
+                for (let i = 0; i < binaryString.length; i++) {
+                    bytes[i] = binaryString.charCodeAt(i);
+                }
+                const audioBlob = new Blob([bytes], { type: mimeType });
+                const audioUrl = URL.createObjectURL(audioBlob);
+                const audioRef = new Audio(audioUrl);
+                console.log("Audio Ref:", audioRef);
+
+                const storage = getStorage();
+                const storageRef = ref(storage, `dms/${groupid}`);
+                const fileName = `${user?.uid}_${Date.now()}.wav`; // or any other extension based on mimeType
+                const fileRef = ref(storageRef, fileName);
+                const metadata = {
+                    contentType: mimeType,
+                };
+                const uploadTask = uploadBytes(fileRef, audioBlob, metadata);
+                uploadTask.then((snapshot) => {
+                    console.log('Uploaded a blob or file!', snapshot);
+                    // You can also get the download URL if needed
+                }).catch((error) => {
+                    console.error('Upload failed:', error); 
+                });
+                
             }
     };
 
@@ -121,7 +165,7 @@ const Talk: React.FC = () => {
                     GetSpeakerUidDict(data.member).then((speakerUidDict) => {
                         if(speakerUidDict){
                             setSpeakerUidDict(speakerUidDict);
-                            console.log(speakerUidDict);
+                            console.log("SpeakerUidDict:", speakerUidDict);
                         }
                     });
                 }
@@ -160,15 +204,18 @@ const Talk: React.FC = () => {
         if (user && groupVoicetalk){
             if ("member" in groupVoicetalk){
                 setMaybeFriend(maybefriends.find((maybefriend) => maybefriend.uid == groupVoicetalk.memberdict[user.uid]));
+                setFriend(friends.find((friend) => friend.uid == groupVoicetalk.memberdict[user.uid]));
                 console.log("groupVoicetalk.memberdict[user.uid]", groupVoicetalk?.memberdict[user.uid]);
             }
         }
     }, [groupVoicetalk])
 
     useEffect(() => {
-        console.log(maybefriends);
+        console.log("maybefriends", maybefriends);
         console.log("maybefriend", maybeFriend);
-    }, [maybeFriend])
+        console.log("friends", friends);
+        console.log("Friend", Friend);
+    }, [maybeFriend, Friend])
 
     
 
@@ -186,10 +233,11 @@ const Talk: React.FC = () => {
                                 {(user && speakerUidDict[groupVoicetalk.memberdict[user.uid]]?.displayName) || 'unknown friend'}
                             </IonTitle>
                             {'member' in groupVoicetalk ?
-                                maybeFriend ? <AcceptMaybeFriend setIsModalOpen={setIsAddFriendModalOpen} isModalOpen={isAddFriendModalOpen}/> : <></>
+                                maybeFriend ? <FriendHandleButton setIsModalOpen={setIsAddFriendModalOpen} isModalOpen={isAddFriendModalOpen} buttonType='add'/> : <></>
                             :   
                                 <></>
                             }
+                            <FriendHandleButton setIsModalOpen={setIsRemoveFriendModalOpen} isModalOpen={isRemoveFriendModalOpen} buttonType='remove'/>
                             
                         </IonToolbar>
                     </IonHeader>
@@ -232,22 +280,32 @@ const Talk: React.FC = () => {
                             })}
                         </IonList>
                         <IonModal 
-                            isOpen={isAddFriendModalOpen || isVoiceRecorderModalOpen} 
+                            isOpen={isAddFriendModalOpen || isVoiceRecorderModalOpen || isRemoveFriendModalOpen} 
                             initialBreakpoint={0.4} 
                             breakpoints={[0, 0.4, 1]}
                             onDidDismiss={() => {
                                 setIsAddFriendModalOpen(false);
                                 setIsVoiceRecorderModalOpen(false);
+                                setIsRemoveFriendModalOpen(false);
                                 recorderRef.current?.stopRecording();
                             }}
                             style={{width: "430px", margin: "0 auto"}}
                         >
                             {maybeFriend &&
-                            <AddFriendModal 
+                            <FriendHandleModal 
                                 setIsModalOpen={setIsAddFriendModalOpen}
                                 isModalOpen={isAddFriendModalOpen} 
-                                addedFriend={maybeFriend} 
-                                AddFriendProcess={acceptFriend}
+                                handledFriend={maybeFriend} 
+                                FriendHandler={acceptFriend}
+                                handleType="add"
+                            />}
+                            {(maybeFriend || Friend) &&
+                            <FriendHandleModal 
+                                setIsModalOpen={setIsRemoveFriendModalOpen}
+                                isModalOpen={isRemoveFriendModalOpen} 
+                                handledFriend={(maybeFriend ? maybeFriend : Friend) as Frienddoctype} 
+                                FriendHandler={removeFriend}
+                                handleType="remove"
                             />}
                             {!voiceData &&
                             <VoiceRecorderModal

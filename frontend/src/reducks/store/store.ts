@@ -5,11 +5,14 @@ import {
 
 import { friendsReducer } from '../friends/reducers';
 import { maybefriendsReducer } from '../maybefriends/reducers';
+// import { userReducer } from '../userBasicInfo/reducers';
 
 export const store = configureStore({
     reducer: combineReducers({
         friends: friendsReducer,
-        maybefriends: maybefriendsReducer, // Assuming maybefriends uses the same reducer for simplicity
+        maybefriends: maybefriendsReducer,
+        blockfriends: friendsReducer, // Assuming blockfriends uses the same reducer as friends
+        // userBasicInfo: userReducer
     }),
 });
 

@@ -8,7 +8,7 @@ import { h } from 'ionicons/dist/types/stencil-public-runtime';
 import './AddFriend.css';
 import { useSelector, useDispatch } from 'react-redux';
 import type { RootState, AppDispatch } from '../reducks/store/store';
-import AddFriendModal from '../components/AddFriendModal';
+import FriendHandleModal from '../components/FriendHandleModal';
 
 
 const AddFriend: React.FC = () => {
@@ -192,7 +192,7 @@ const AddFriend: React.FC = () => {
                             onDidDismiss={() => setIsModalOpen(false)}
                             style={{width: "430px", margin: "0 auto"}}
                 >
-                    {friendData && <AddFriendModal setIsModalOpen={setIsModalOpen} isModalOpen={isModalOpen} addedFriend={friendData} AddFriendProcess={AddFriend}/>}
+                    {friendData && <FriendHandleModal setIsModalOpen={setIsModalOpen} isModalOpen={isModalOpen} handledFriend={friendData} FriendHandler={AddFriend} handleType='add'/>}
                 </IonModal>
             </IonContent>
         </IonPage>

@@ -33,6 +33,7 @@
     "ionicons": "^7.4.0",
     "qrcode": "^1.5.4",
     "react": "19.0.0",
+    "react-cropper": "^2.3.3",
     "react-dom": "19.0.0",
     "react-i18next": "^15.5.1",
     "react-redux": "^9.2.0",
